@@ -1,0 +1,2 @@
+wildfly-self-monitor
+====================
