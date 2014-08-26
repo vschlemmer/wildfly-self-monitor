@@ -1,5 +1,6 @@
 package org.jboss.as.selfmonitor.extension;
 
+import java.util.Collections;
 import org.jboss.as.controller.Extension;
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.PathElement;
@@ -21,18 +22,22 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import java.util.List;
 
+import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
+import org.jboss.as.controller.PathAddress;
+import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.DESCRIBE;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
+import org.jboss.dmr.Property;
 
 
 /**
  * @author <a href="kabir.khan@jboss.com">Kabir Khan</a>
  */
 public class SelfmonitorExtension implements Extension {
-
+    
     /**
      * The name space used for the {@code substystem} element
      */
@@ -51,6 +56,11 @@ public class SelfmonitorExtension implements Extension {
     protected static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
     private static final String RESOURCE_NAME = SelfmonitorExtension.class.getPackage().getName() + ".LocalDescriptions";
 
+    public static final String PATH = "path";
+    protected static final String METRIC = "metric";
+    protected static final String METRIC_NAME = "name";
+    protected static final PathElement METRIC_PATH = PathElement.pathElement(METRIC);
+    
     static StandardResourceDescriptionResolver getResourceDescriptionResolver(final String keyPrefix) {
         String prefix = SUBSYSTEM_NAME + (keyPrefix == null ? "" : "." + keyPrefix);
         return new StandardResourceDescriptionResolver(prefix, RESOURCE_NAME, SelfmonitorExtension.class.getClassLoader(), true, false);
@@ -66,8 +76,10 @@ public class SelfmonitorExtension implements Extension {
     public void initialize(ExtensionContext context) {
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, 1, 0);
         final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(SubsystemDefinition.INSTANCE);
+        ManagementResourceRegistration metric = registration.registerSubModel(MetricDefinition.INSTANCE);
+        
+        
         registration.registerOperationHandler(DESCRIBE, GenericSubsystemDescribeHandler.INSTANCE, GenericSubsystemDescribeHandler.INSTANCE, false, OperationEntry.EntryType.PRIVATE);
-
         subsystem.registerXMLElementWriter(parser);
     }
 
@@ -88,7 +100,22 @@ public class SelfmonitorExtension implements Extension {
          */
         @Override
         public void writeContent(XMLExtendedStreamWriter writer, SubsystemMarshallingContext context) throws XMLStreamException {
+            //Write out the main subsystem element
             context.startSubsystemElement(SelfmonitorExtension.NAMESPACE, false);
+            writer.writeStartElement("metrics");
+            ModelNode node = context.getModelNode();
+            ModelNode metric = node.get(METRIC);
+            for (Property property : metric.asPropertyList()) {
+                //write each child element to xml
+                writer.writeStartElement("metric");
+                writer.writeAttribute("name", property.getName());
+                ModelNode entry = property.getValue();
+                MetricDefinition.PATH.marshallAsAttribute(entry, true, writer);
+                writer.writeEndElement();
+            }
+            //End metrics
+            writer.writeEndElement();
+            //End subsystem
             writer.writeEndElement();
         }
 
@@ -97,9 +124,57 @@ public class SelfmonitorExtension implements Extension {
          */
         @Override
         public void readElement(XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
-            // Require no content
+            // Require no attributes
+            ParseUtils.requireNoAttributes(reader);
+ 
+            //Add the main subsystem 'add' operation
+            final ModelNode subsystem = new ModelNode();
+            subsystem.get(OP).set(ADD);
+            subsystem.get(OP_ADDR).set(PathAddress.pathAddress(SUBSYSTEM_PATH).toModelNode());
+            list.add(subsystem);
+ 
+            //Read the children
+            while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                if (!reader.getLocalName().equals("metrics")) {
+                    throw ParseUtils.unexpectedElement(reader);
+                }
+                while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                    if (reader.isStartElement()) {
+                        readMetric(reader, list);
+                    }
+                }
+            }
+        }
+        
+        private void readMetric(XMLExtendedStreamReader reader, List<ModelNode> list) throws XMLStreamException {
+            if (!reader.getLocalName().equals("metric")) {
+                throw ParseUtils.unexpectedElement(reader);
+            }
+            ModelNode addMetricOperation = new ModelNode();
+            addMetricOperation.get(OP).set(ModelDescriptionConstants.ADD);
+ 
+            String name = null;
+            String path = null;
+            for (int i = 0; i < reader.getAttributeCount(); i++) {
+                String attr = reader.getAttributeLocalName(i);
+                String value = reader.getAttributeValue(i);
+                if (attr.equals("name")) {
+                    name = value;
+                } else if (attr.equals("path")) {
+                    MetricDefinition.PATH.parseAndSetParameter(value, addMetricOperation, reader);
+                } else {
+                    throw ParseUtils.unexpectedAttribute(reader, i);
+                }
+            }
             ParseUtils.requireNoContent(reader);
-            list.add(createAddSubsystemOperation());
+            if (name == null) {
+                throw ParseUtils.missingRequiredElement(reader, Collections.singleton("name"));
+            }
+ 
+            //Add the 'add' operation for each 'metric' child
+            PathAddress addr = PathAddress.pathAddress(SUBSYSTEM_PATH, PathElement.pathElement(METRIC, name));
+            addMetricOperation.get(OP_ADDR).set(addr.toModelNode());
+            list.add(addMetricOperation);
         }
     }
 

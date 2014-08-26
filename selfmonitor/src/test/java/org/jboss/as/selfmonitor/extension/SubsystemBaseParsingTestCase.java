@@ -1,8 +1,13 @@
 package org.jboss.as.selfmonitor.extension;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import org.jboss.as.subsystem.test.AbstractSubsystemBaseTest;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 
 /**
  * This is the barebone test example that tests subsystem
@@ -16,11 +21,28 @@ public class SubsystemBaseParsingTestCase extends AbstractSubsystemBaseTest {
         super(SelfmonitorExtension.SUBSYSTEM_NAME, new SelfmonitorExtension());
     }
 
-
     @Override
-    protected String getSubsystemXml() throws IOException {
-        return "<subsystem xmlns=\"" + SelfmonitorExtension.NAMESPACE + "\">" +
-                "</subsystem>";
+    protected String getSubsystemXml() {
+        
+        File configFile = null;
+        try {
+            configFile = new File(getClass().getClassLoader().getResource("selfmonitor-subsystem.xml").toURI());
+        } catch (URISyntaxException ex) {
+            throw new IllegalStateException("Configuration file was not found.", ex);
+        }
+        StringBuilder configBuilder = new StringBuilder();
+        try{
+            InputStreamReader isr = new FileReader(configFile);
+            BufferedReader br = new BufferedReader(isr);
+            String line = br.readLine();
+            while (line != null) {
+                configBuilder.append(line.trim());
+                line = br.readLine();
+            }
+        } catch (IOException ex) {
+            throw new IllegalStateException("Error occurred while loading subsystem configuration.", ex);
+        }
+        return configBuilder.toString();
     }
 
 }
