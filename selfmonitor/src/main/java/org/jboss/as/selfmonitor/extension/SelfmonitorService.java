@@ -36,7 +36,7 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         client = null;
         try {  
             client = ModelControllerClient.Factory.create(
-                    InetAddress.getByName("localhost"), 9999);
+                    InetAddress.getByName("localhost"), 9990);
         } catch (UnknownHostException ex) {
             java.util.logging.Logger.getLogger(
                     SelfmonitorService.class.getName()).log(Level.SEVERE, null, ex);
