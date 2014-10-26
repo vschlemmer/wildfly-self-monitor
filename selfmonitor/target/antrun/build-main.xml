@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <tempfile property="temp.file"/>
+  <echo message="org.jboss.as.selfmonitor" file="${temp.file}"/>
+  <replace token="." file="${temp.file}" value="/"/>
+  <loadfile property="module.path" srcfile="${temp.file}"/>
+  <delete file="${temp.file}"/>
+  <delete dir="target/module"/>
+  <property name="module.dir" value="target/module/${module.path}/main"/>
+  <copy file="src/main/resources/module/main/module.xml" tofile="${module.dir}/module.xml"/>
+  <copy todir="${module.dir}" file="target/selfmonitor.jar"/>
+  <echo>Module org.jboss.as.selfmonitor has been created in the target/module directory. Copy to your JBoss AS 7 installation.</echo>
+</target>
+</project>
