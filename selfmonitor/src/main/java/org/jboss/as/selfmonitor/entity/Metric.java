@@ -10,7 +10,9 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- *
+ * Class representing a metric entity and the way it is stored in database - with
+ * value and date when the value was captured
+ * 
  * @author Vojtech Schlemmer
  */
 @Entity

@@ -11,7 +11,9 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
 
 /**
- *
+ * Class providing API for scanning model and retrieving its runtime 
+ * attributes (metrics)
+ * 
  * @author Vojtech Schlemmer
  */
 public class ModelScanner {
@@ -21,16 +23,22 @@ public class ModelScanner {
     public static final String READ_CHILDREN_TYPES = "read-children-types";
     public static final String READ_CHILDREN_NAMES = "read-children-names";
     public static final String ATTRIBUTES_ONLY = "attributes-only";
-    private final org.jboss.logging.Logger log = org.jboss.logging.Logger.getLogger(ModelScanner.class);
     
     public ModelScanner(ModelControllerClient client){
         this.client = client;
         runtimeAttributes = new HashSet<>();
     }
     
+    /**
+     * Retrieves runtime attributes (metrics) from the whole model - first
+     * it adds root metrics to "runtimeAttributes" property and then iterates 
+     * child types
+     * 
+     * @return Set of runtime attributes in form of a 
+     * string (path + / + attribute name)
+     */
     public Set<String> getModelRuntimeAttributes(){
         // add root runtime attributes
-        ModelNode op = new ModelNode();
         Set<String> localRuntimeAttributes = null;
         try {
             localRuntimeAttributes = getRuntimeAttributes("");
@@ -39,6 +47,7 @@ public class ModelScanner {
         }
         includeLocalRuntimeAttributes(localRuntimeAttributes, "");
         // get root's children types
+        ModelNode op = new ModelNode();
         op.get(ClientConstants.OP).set(READ_CHILDREN_TYPES);
         ModelNode childrenTypes = null;
         try {
@@ -55,6 +64,14 @@ public class ModelScanner {
         return runtimeAttributes;
     }
     
+    /**
+     * Iterates all children of a given child type, adds metrics to 
+     * "runtimeAttributes" property of each of the child, iterates children
+     * types of each child and runs this method recursively
+     * 
+     * @param childType child type the children of which are iterated
+     * @param path path of the child type in context of the model
+     */
     private void getChildrenAttributes(String childType, String path){
         // get the children of a given childType
         ModelNode op = new ModelNode();
@@ -69,38 +86,47 @@ public class ModelScanner {
                 ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
         }
         if(validateNode(childrenNames)){
-            //iterate the children of a given childType
             for(ModelNode childName : childrenNames.asList()){
-                // add runtime attributes of the child
-                String attrPath = path + "/" + childType + "=" + childName.asString();
+                // add runtime attributes of each child
+                String attrPath = path+"/"+childType+"="+childName.asString();
                 Set<String> localRuntimeAttributes = null;
                 try {
                     localRuntimeAttributes = getRuntimeAttributes(attrPath);
                 } catch (IOException ex) {
-                    // continue in case the childName includes "/" or "="
+                    // TODO: better handle of the case when childName includes "/" or "="
                     continue;
                 }
-                includeLocalRuntimeAttributes(localRuntimeAttributes, attrPath + "/");
+                includeLocalRuntimeAttributes(localRuntimeAttributes, 
+                        attrPath + "/");
                 // for each child get his children types and run this method recursively
                 ModelNode opChildrenTypes = new ModelNode();
                 MetricPathResolver.resolvePath(attrPath, opChildrenTypes);
                 opChildrenTypes.get(ClientConstants.OP).set(READ_CHILDREN_TYPES);
                 ModelNode childrenTypes = null;
                 try {
-                    childrenTypes = client.execute(opChildrenTypes).get(ClientConstants.RESULT);
+                    childrenTypes = client.execute(opChildrenTypes).get(
+                            ClientConstants.RESULT);
                 } catch (IOException ex) {
-                    Logger.getLogger(ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ModelScanner.class.getName()).log(
+                            Level.SEVERE, null, ex);
                 }
                 if(validateNode(childrenTypes)){
-                    for(ModelNode newChildType : childrenTypes.asList()){
-                        getChildrenAttributes(newChildType.asString(), 
-                                path + "/" + childType + "=" + childName.asString());   
+                    for(ModelNode recursiveChildType : childrenTypes.asList()){
+                        getChildrenAttributes(recursiveChildType.asString(), 
+                                path+"/"+childType+"="+childName.asString());   
                     }
                 }
             }
         }
     }
     
+    /**
+     * Retrieves metrics of a model's node
+     * 
+     * @param path path of the node
+     * @return set of metrics in form path + "/" + metric name
+     * @throws IOException 
+     */
     private Set<String> getRuntimeAttributes(String path) throws IOException{
         Set<String> withoutRuntimeAttributes = getAttributes(path, false);
         Set<String> withRuntimeAttributes = getAttributes(path, true);
@@ -108,6 +134,15 @@ public class ModelScanner {
         return withRuntimeAttributes;
     }
     
+    /**
+     * Retrieves attributes of a model's node - either runtime or not
+     * 
+     * @param path path of the node
+     * @param runtime whether runtime or non-runtime attributes should
+     * be retrieved
+     * @return set of attributes in form path + "/" + metric name
+     * @throws IOException 
+     */
     private Set<String> getAttributes(String path, boolean runtime) throws IOException{
         ModelNode op = new ModelNode();
         MetricPathResolver.resolvePath(path, op);
@@ -127,16 +162,28 @@ public class ModelScanner {
         return attributesSet;
     }
     
-    private boolean validateNode(ModelNode childrenTypes){
-        if(childrenTypes != null){
-            if(!childrenTypes.asString().equals("undefined") &&
-               !childrenTypes.asString().equals("")){
+    /**
+     * Validates model's node - node is valid if is neither null nor empty nor "undefined"
+     * 
+     * @param node node to be validated
+     * @return true if node is valid, false otherwise
+     */
+    private boolean validateNode(ModelNode node){
+        if(node != null){
+            if(!node.asString().equals("undefined") &&
+               !node.asString().equals("")){
                 return true;
             }
         }
         return false;
     }
     
+    /**
+     * Adds set of metrics to the "runtimeAttributes" property
+     * 
+     * @param attributes attributes to be added
+     * @param path path of the attributes
+     */
     private void includeLocalRuntimeAttributes(Set<String> attributes, String path){
         for (String attribute : attributes){
             String newAttribute = path + attribute;

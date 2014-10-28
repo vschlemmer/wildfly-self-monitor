@@ -7,7 +7,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import static org.jboss.as.selfmonitor.MetricDefinition.PATH;
-import static org.jboss.as.selfmonitor.MetricDefinition.ENABLED;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
@@ -31,10 +30,9 @@ public class MetricRemove extends AbstractRemoveStepHandler {
         SelfmonitorService service = getSelfmonitorService(
                 context.getServiceRegistry(true), 
                 SelfmonitorService.NAME);
-        String metricName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+        String metricName = PathAddress.pathAddress(operation.get(
+                ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
         String metricPath = PATH.resolveModelAttribute(context,model).asString();
-        boolean enabled = ENABLED.resolveModelAttribute(context,model).asBoolean();
-        ModelMetric metric = new ModelMetric(metricName, metricPath, enabled);
         ModelMetric metricToRemove = service.getMetric(metricName, metricPath);
         if (metricToRemove != null){
             service.removeMetric(metricToRemove);
@@ -44,8 +42,10 @@ public class MetricRemove extends AbstractRemoveStepHandler {
         }
     }
     
-    private SelfmonitorService getSelfmonitorService(ServiceRegistry registry, String name){
-        ServiceController<?> container = registry.getService(ServiceName.JBOSS.append(name));
+    private SelfmonitorService getSelfmonitorService(ServiceRegistry registry, 
+            String name){
+        ServiceController<?> container = registry.getService(
+                ServiceName.JBOSS.append(name));
         if (container != null) {
             SelfmonitorService service = (SelfmonitorService)container.getValue();
             return service;

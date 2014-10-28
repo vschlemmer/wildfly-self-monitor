@@ -4,7 +4,8 @@ import java.sql.Date;
 import java.util.Map;
 
 /**
- *
+ * Storage of metric records
+ * 
  * @author Vojtech Schlemmer
  */
 public interface IMetricsStorage {

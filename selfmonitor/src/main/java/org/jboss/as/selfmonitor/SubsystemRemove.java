@@ -23,7 +23,8 @@ class SubsystemRemove extends AbstractRemoveStepHandler {
     }
 
     @Override
-    protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
+    protected void performRuntime(OperationContext context, ModelNode operation, 
+            ModelNode model) throws OperationFailedException {
         context.removeService(ServiceName.JBOSS.append(SelfmonitorService.NAME));
     }
 

@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- *
+ * Class providing memory storage of metric records
+ * 
  * @author Vojtech Schlemmer
  */
 public class MetricsMemoryStorage implements IMetricsStorage {
@@ -39,7 +40,15 @@ public class MetricsMemoryStorage implements IMetricsStorage {
         return this.metrics.get(metricId);
     }
     
-    protected void addMetricRecord(String metricId, Date date, Object value){
+    /**
+     * Adds metric with its value and date when it's been captured to the 
+     * memory storage
+     * 
+     * @param metricId metric path along with metric name
+     * @param date date when the metric value has been captured
+     * @param value  value of the metric
+     */
+    private void addMetricRecord(String metricId, Date date, Object value){
         if (this.metrics.containsKey(metricId)){
             this.metrics.get(metricId).put(date, value);
         }
@@ -50,7 +59,14 @@ public class MetricsMemoryStorage implements IMetricsStorage {
         }
     }
     
-    protected String getMetricId(String metricName, String metricPath){
+    /**
+     * Retrieve metric id by simply concatenating its path and name
+     * 
+     * @param metricName metric name
+     * @param metricPath metric path
+     * @return id of the metric
+     */
+    private String getMetricId(String metricName, String metricPath){
         return metricPath + metricName;
     }
     

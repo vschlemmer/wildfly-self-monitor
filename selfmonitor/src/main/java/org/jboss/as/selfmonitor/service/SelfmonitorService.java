@@ -13,49 +13,48 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.selfmonitor.SubsystemAdd;
 import org.jboss.as.selfmonitor.model.MetricPathResolver;
 import org.jboss.as.selfmonitor.model.ModelScanner;
 import org.jboss.as.selfmonitor.model.ModelWriter;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.as.selfmonitor.storage.MetricsDbStorage;
+import org.jboss.as.selfmonitor.storage.MetricsMemoryStorage;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.Service;
-import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 
 /**
- *
+ * Class with selfmonitor service providing the basic functionalities related
+ * to monitoring of the server runtime attributes (metrics)
+ * 
+ * TODO: Add to configuration whether to scan whole model for metrics or not
+ * 
  * @author Vojtech Schlemmer
  */
 public class SelfmonitorService implements Service<SelfmonitorService> {
 
     public static final String NAME = "SelfmonitorService01";
+    public static final String HOST = "localhost";
+    public static final int PORT = 9990;    
+    // TODO: put this to subsystem configuration
+    public static final String STORAGE_TYPE = "database";
     private final Logger log = Logger.getLogger(SelfmonitorService.class);
     private ModelControllerClient client;
     private static final long INTERVAL = 5000;
+    private static final long STARTUP_TIME = 1000;
     private IMetricsStorage metricsStorage;
     private Set<ModelMetric> metrics = Collections.synchronizedSet(new HashSet<ModelMetric>());
-    private ServiceController jpaService;
     private Set<String> attributes;
     private boolean initialized = false;
-
-    public ServiceController getJpaService() {
-        return jpaService;
-    }
-
-    public void setJpaService(ServiceController jpaService) {
-        this.jpaService = jpaService;
-    }
     
     public SelfmonitorService() {
         client = null;
         try {  
             client = ModelControllerClient.Factory.create(
-                    InetAddress.getByName("localhost"), 9990);
+                    InetAddress.getByName(HOST), PORT);
         } catch (UnknownHostException ex) {
             java.util.logging.Logger.getLogger(
                     SelfmonitorService.class.getName()).log(Level.SEVERE, null, ex);
@@ -67,17 +66,22 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         public void run() {
             while (true) {
                 try {
-                    // time needed for client to startup
-                    Thread.sleep(1000);
                     if(!initialized){
-                        metricsStorage = new MetricsDbStorage();
+                        // time needed for client to startup
+                        Thread.sleep(STARTUP_TIME);
+                        if(STORAGE_TYPE.equals("database")){
+                            metricsStorage = new MetricsDbStorage();
+                        }
+                        else{
+                            metricsStorage = new MetricsMemoryStorage();
+                        }
                         ModelScanner scanner = new ModelScanner(client);
                         ModelWriter writer = new ModelWriter(client);
-                        modelScanAttributes2(scanner, writer);
+                        modelScanAttributes(scanner, writer);
                         initialized = true;
                     }
                     Thread.sleep(INTERVAL);
-                    storeMetrics();
+                    storeMetrics(new Date(System.currentTimeMillis()));
                     logStoredMetrics();
                 } catch (InterruptedException e) {
                     interrupted();
@@ -87,49 +91,39 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         }
     };
     
-    private void modelScanAttributes(ModelScanner scanner, ModelWriter writer){
+    /**
+     * Scans the whole resource model and for each node collects it's runtime
+     * attributes
+     * 
+     * @param scanner ModelScanner which provides scanning API
+     * @param writer writer that writes each found metric to selfmonitor
+     *  subsystem configuration if not already present
+     * 
+     * @return number of attributes found in the model
+     */
+    private int modelScanAttributes(ModelScanner scanner, ModelWriter writer){
         log.info("Scanning the whole model for metrics, please wait...");
-        long timeStarted = System.currentTimeMillis();
-        attributes = scanner.getModelRuntimeAttributes();
-        removeAllMetricsFromModel(writer);
-        for(String attribute : attributes){
-            ModelMetric m = getMetricFromAttribute(attribute);
-            if(!metrics.contains(m)){
-                this.metrics.add(m);
-                writer.addMetricToModel(m);
-            }
-            else{
-                log.info("debug metric already exists: " + m.getPath() + "/" + m.getName());
-            }
-        }
-        long timeEnded = System.currentTimeMillis();
-        long resultTime = timeEnded - timeStarted;
-        log.info("Metrics added");
-        log.info("Time spent: " + resultTime/1000 + "s");
-        log.info("Number of scanned attributes: " + attributes.size());
-    }
-    
-    private void modelScanAttributes2(ModelScanner scanner, ModelWriter writer){
-        log.info("Scanning the whole model for metrics, please wait...");
-        long timeStarted = System.currentTimeMillis();
         attributes = scanner.getModelRuntimeAttributes();
         for(String attribute : attributes){
             ModelMetric m = getMetricFromAttribute(attribute);
+            writer.addMetricToModelIfNotPresent(m);
             if(!metrics.contains(m)){
-                this.metrics.add(m);
-                writer.addMetricToModelIfNotPresent(m);
-            }
-            else{
-                log.info("debug metric already exists: " + m.getPath() + "/" + m.getName());
+                metrics.add(m);
             }
         }
-        long timeEnded = System.currentTimeMillis();
-        long resultTime = timeEnded - timeStarted;
-        log.info("Metrics added");
-        log.info("Time spent: " + resultTime/1000 + "s");
-        log.info("Number of scanned attributes: " + attributes.size());
+        log.info("Added " + attributes.size() + " metrics");
+        return attributes.size();
     }
     
+    /**
+     * Parses input string representation of a metric (path+attribute name)
+     * and creates a ModelMetric instance of it with "enabled" property 
+     * set to false
+     * 
+     * @param attribute attribute to be parsed
+     * @return ModelMetric instance of a given attribute with "enabled" 
+     * property set to false
+     */
     private ModelMetric getMetricFromAttribute(String attribute){
         String[] parts = attribute.split("/");
         String metricName = parts[parts.length-1];
@@ -148,14 +142,12 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         return m;
     }
     
-    private void removeAllMetricsFromModel(ModelWriter writer){
-        for(String attribute : attributes){
-            ModelMetric m = getMetricFromAttribute(attribute);
-            writer.removeMetricFromModel(m);
-        }
-    }
-    
-    private void storeMetrics(){
+    /**
+     * Stores all enabled metrics in "metrics" property with their values
+     * 
+     * @param time date and time of capturing the metric's value
+     */
+    private void storeMetrics(Date time){
         for(ModelMetric metric : metrics){
             if(metric.isEnabled()){
                 ModelNode op = new ModelNode();
@@ -163,25 +155,27 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
                 op.get(ClientConstants.INCLUDE_RUNTIME).set(true);  
                 MetricPathResolver.resolvePath(metric.getPath(), op);
                 ModelNode returnVal = null;
-                if(client != null){
-                    try {
-                        returnVal = client.execute(op);
-                    } catch (IOException ex) {
-                        java.util.logging.Logger.getLogger(SubsystemAdd.class
-                                .getName()).log(Level.SEVERE, null, ex);
-                    }
-                    if (returnVal != null){
-                        Object metricValue = returnVal.get("result").get(
-                                metric.getName());
-                        // debug - remove toString(), inspect the metrics' values
-                        storeMetric(metric.getName(), 
-                                metric.getPath(), metricValue.toString());
-                    }
+                try {
+                    returnVal = client.execute(op);
+                } catch (IOException ex) {
+                    java.util.logging.Logger.getLogger(SelfmonitorService.class
+                            .getName()).log(Level.SEVERE, null, ex);
+                }
+                if (returnVal != null){
+                    Object metricValue = returnVal.get(
+                            ClientConstants.RESULT).get(metric.getName());
+                    // TODO: remove toString(), inspect the metrics' values
+                    storeMetric(metric.getName(), 
+                            metric.getPath(), metricValue.toString(), time);
                 }
             }
         }
     }
     
+    /**
+     * Retrieves all records of all metrics from the storage and writes it
+     * into log
+     */
     private void logStoredMetrics(){
         SimpleDateFormat printFormat = new SimpleDateFormat("HH:mm:ss.SSS");
         for(ModelMetric metric : metrics){
@@ -202,9 +196,18 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         }
     }
     
-    private void storeMetric(String metricName, String metricPath, Object value){
-        metricsStorage.addMetric(metricName, metricPath, 
-                new Date(System.currentTimeMillis()), value);
+    /**
+     * Stores a metric with its value and time when the value was captured 
+     * into the storage
+     * 
+     * @param metricName name of the metric
+     * @param metricPath path to the metric in the model
+     * @param value value of the metric
+     * @param time date and time when the metric's value was captured
+     */
+    private void storeMetric(String metricName, String metricPath, 
+            Object value, Date time){
+        metricsStorage.addMetric(metricName, metricPath, time, value);
     }
     
     @Override
@@ -238,6 +241,13 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         metrics.remove(metric);
     }
     
+    /**
+     * Retrieves a metric from "metrics" property according to its name and path
+     * 
+     * @param metricName name of the metric
+     * @param metricPath path of the metric
+     * @return metric found or null
+     */
     public ModelMetric getMetric(String metricName, String metricPath){
         for(ModelMetric metricIter : metrics){
             if (metricIter.getName().equals(metricName) &&

@@ -12,7 +12,8 @@ import org.jboss.as.selfmonitor.entity.Metric;
 import org.jboss.logging.Logger;
 
 /**
- *
+ * Class providing database storage of metric records
+ * 
  * @author Vojtech Schlemmer
  */
 public class MetricsDbStorage implements IMetricsStorage {
@@ -22,39 +23,46 @@ public class MetricsDbStorage implements IMetricsStorage {
     public static final String PERSISTENCE_UNIT_NAME = "SelfmonitorPU";
     
     public MetricsDbStorage(){
-        this.entityManager = createEntityManagerFactory().createEntityManager();
+        this.entityManager = createEntityManagerFactory(
+                PERSISTENCE_UNIT_NAME).createEntityManager();
     }
     
+    /**
+     * TODO: delete - for test purposes
+     * tests whether the database is initialized properly
+     */
     public void initDatabase(){
-        EntityManagerFactory emf = createEntityManagerFactory();
-        if(emf != null){
-            EntityManager em = emf.createEntityManager();
-            Metric m = new Metric("testMetric1", "testMetric1", new Date(System.currentTimeMillis()), null);
-            em.getTransaction().begin();
-            em.persist(m);
-            em.getTransaction().commit();
-            String queryString = "SELECT m FROM Metric m WHERE m.name = 'testMetric2'";
-            Query q = em.createQuery(queryString, Metric.class);
+        if(entityManager != null){
+            Metric m = new Metric("testMetric1", "testMetric1", 
+                    new Date(System.currentTimeMillis()), null);
+            entityManager.getTransaction().begin();
+            entityManager.persist(m);
+            entityManager.getTransaction().commit();
+            String queryString = "SELECT m FROM Metric m WHERE m.name = 'testMetric1'";
+            Query q = entityManager.createQuery(queryString, Metric.class);
             List<Metric> metrics = q.getResultList();
             if(metrics.size() > 0){
-                log.info("----------------------------");
-                log.info("metric name: " + metrics.get(0).getName());
-                log.info("----------------------------");
+                log.info("Test metric stored: " + metrics.get(0).getName());
             }
-            em.close();
+//            entityManager.close();
         }
         else{
-            log.info("----------------------------");
-            log.info("emf is null!! ");
-            log.info("----------------------------");
+            log.info("EntityManager is null");
         }
     }
     
-    private EntityManagerFactory createEntityManagerFactory(){	
+    /**
+     * Creates EntityManagerFactory instance for a given persistence unit name
+     * 
+     * @param persistenceUnit persistence unit for which EntityManagerFactory
+     * will be created
+     * @return EntityManagerFactory for a given persistence unit
+     */
+    private EntityManagerFactory createEntityManagerFactory(String persistenceUnit){	
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-            return Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+            return Persistence.createEntityManagerFactory(persistenceUnit);
         } finally {
             Thread.currentThread().setContextClassLoader(originalClassLoader);
         }
@@ -77,6 +85,12 @@ public class MetricsDbStorage implements IMetricsStorage {
         return metricRecords;
     }
     
+    /**
+     * retrieves values of a given metric name and path from the database
+     * @param metricName name of the metric
+     * @param metricPath path of the metric
+     * @return list of retrieved metrics
+     */
     private List<Metric> retrieveMetricRecords(String metricName, String metricPath){
         String queryString = "SELECT m FROM Metric m WHERE m.name = '" +
                 metricName + "' AND m.path = '" + metricPath + "'";

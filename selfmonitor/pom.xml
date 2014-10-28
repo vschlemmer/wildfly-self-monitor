@@ -22,34 +22,24 @@
   --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-<!--    <parent>
-        <artifactId>wildfly-parent</artifactId>
-        <groupId>org.wildfly</groupId>
-        <version>8.1.0.Final</version>
-    </parent>-->
-
-
-    
     <groupId>org.jboss.as</groupId>
     <artifactId>selfmonitor</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>JBoss AS: Self  Monitor</name>
+    <name>WildFly: Self  Monitor</name>
 
     <packaging>jar</packaging>
     
     <url>https://github.com/bender-futur/wildfly-self-monitor</url>
     
     <properties>
-        <version.wildfly>8.1.0.Final</version.wildfly>
-        <version.jboss.as>7.1.1.Final</version.jboss.as>
-        <version.junit>4.8.2</version.junit>
         <module.name>org.jboss.as.selfmonitor</module.name>
+        <version.wildfly>8.1.0.Final</version.wildfly>
+        <version.junit>4.11</version.junit>
 		<version.jboss.bom>8.1.0.Final</version.jboss.bom>
-        <version.org.hibernate4>4.3.5.Final</version.org.hibernate4>
-        <version.org.hibernate3>3.6.6.Final</version.org.hibernate3>
-        <eclipselink.version.2.4.milestone>2.4.2</eclipselink.version.2.4.milestone>
-        <eclipselink.version>${eclipselink.version.2.4.milestone}</eclipselink.version>
+        <version.jboss-msc>1.2.2.Final</version.jboss-msc>
+        <version.commons-lang>2.4</version.commons-lang>
+        
     </properties>
     
 
@@ -136,68 +126,6 @@
     
     <dependencyManagement>
       <dependencies>
-           <!--JBoss AS Dependencies--> 
-<!--          <dependency>
-              <groupId>org.wildfly</groupId>
-              <artifactId>wildfly-parent</artifactId>
-              <version>${version.wildfly}</version>
-              <type>pom</type>
-              <scope>import</scope>
-              <exclusions>
-                <exclusion>
-                   <groupId>org.wildfly</groupId>
-                   <artifactId>wildfly-build-config</artifactId>
-                 </exclusion>
-              </exclusions>
-          </dependency>
-          <dependency>
-              <groupId>org.wildfly</groupId>
-              <artifactId>wildfly-controller</artifactId>
-              <version>${version.wildfly}</version>
-          </dependency>
-          <dependency>
-              <groupId>org.wildfly</groupId>
-              <artifactId>wildfly-server</artifactId>
-              <version>${version.wildfly}</version>
-          </dependency>
-          <dependency>
-              <groupId>org.wildfly</groupId>
-              <artifactId>wildfly-jpa</artifactId>
-              <version>${version.wildfly}</version>
-          </dependency>
-          <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>5.1.0.Final</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-api</artifactId>
-                </exclusion>
-            </exclusions>
-          </dependency>
-          <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>4.3.5.Final</version>
-          </dependency>
-          <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>4.3.5.Final</version>
-          </dependency>
-          <dependency>
-              <groupId>org.jboss.as</groupId>
-              <artifactId>jboss-as-subsystem-test</artifactId>
-              <version>7.2.0.Final</version>
-              <scope>test</scope>
-          </dependency>
-          <dependency>
-              <groupId>junit</groupId>
-              <artifactId>junit</artifactId>
-              <scope>test</scope>
-              <version>${version.junit}</version>
-          </dependency>-->
 		  <dependency>
                 <groupId>org.wildfly.bom</groupId>
                 <artifactId>jboss-javaee-7.0-with-hibernate</artifactId>
@@ -205,50 +133,40 @@
                 <type>pom</type>
                 <scope>import</scope>
           </dependency>
-          
-          
 	  </dependencies>
     </dependencyManagement>
 
     <dependencies>
-<!--        <dependency>
-            <groupId>org.jboss.as</groupId>
-            <artifactId>jboss-as-subsystem-test</artifactId>
-            <version>7.2.0.Final</version>
-            <scope>test</scope>
-        </dependency>-->
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-controller</artifactId>
-            <version>8.1.0.Final</version>
+            <version>${version.wildfly}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-server</artifactId>
-            <version>8.1.0.Final</version>
+            <version>${version.wildfly}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-jpa</artifactId>
-            <version>8.1.0.Final</version>
+            <version>${version.wildfly}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-            
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -263,23 +181,18 @@
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-controller-client</artifactId>
             <type>jar</type>
-            <version>8.1.0.Final</version>
+            <version>${version.wildfly}</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.msc</groupId>
             <artifactId>jboss-msc</artifactId>
-            <version>1.2.2.Final</version>
+            <version>${version.jboss-msc}</version>
             <type>jar</type>
         </dependency>
-<!--        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <scope>provided</scope>
-        </dependency>-->
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-            <version>2.4</version>
+            <version>${version.commons-lang}</version>
             <type>jar</type>
         </dependency>
     </dependencies>

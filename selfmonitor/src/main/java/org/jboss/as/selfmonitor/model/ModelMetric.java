@@ -3,7 +3,9 @@ package org.jboss.as.selfmonitor.model;
 import java.util.Objects;
 
 /**
- *
+ * A simple class representing metric in the form it is represented in the 
+ * configuration of the selfmonitor subsystem
+ * 
  * @author Vojtech Schlemmer
  */
 public class ModelMetric {

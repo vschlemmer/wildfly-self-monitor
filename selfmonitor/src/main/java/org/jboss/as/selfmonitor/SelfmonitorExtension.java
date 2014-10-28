@@ -53,8 +53,10 @@ public class SelfmonitorExtension implements Extension {
      */
     private final SubsystemParser parser = new SubsystemParser();
 
-    protected static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(SUBSYSTEM, SUBSYSTEM_NAME);
-    private static final String RESOURCE_NAME = SelfmonitorExtension.class.getPackage().getName() + ".LocalDescriptions";
+    protected static final PathElement SUBSYSTEM_PATH = PathElement.pathElement(
+            SUBSYSTEM, SUBSYSTEM_NAME);
+    private static final String RESOURCE_NAME = SelfmonitorExtension.class
+            .getPackage().getName() + ".LocalDescriptions";
 
     public static final String PATH = "path";
     public static final String ENABLED = "enabled";
@@ -65,7 +67,8 @@ public class SelfmonitorExtension implements Extension {
     
     static StandardResourceDescriptionResolver getResourceDescriptionResolver(final String keyPrefix) {
         String prefix = SUBSYSTEM_NAME + (keyPrefix == null ? "" : "." + keyPrefix);
-        return new StandardResourceDescriptionResolver(prefix, RESOURCE_NAME, SelfmonitorExtension.class.getClassLoader(), true, false);
+        return new StandardResourceDescriptionResolver(prefix, RESOURCE_NAME, 
+                SelfmonitorExtension.class.getClassLoader(), true, false);
     }
 
     @Override
@@ -77,11 +80,15 @@ public class SelfmonitorExtension implements Extension {
     @Override
     public void initialize(ExtensionContext context) {
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, 1, 0);
-        final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(SubsystemDefinition.INSTANCE);
-        ManagementResourceRegistration metric = registration.registerSubModel(MetricDefinition.INSTANCE);
-        
-        
-        registration.registerOperationHandler(DESCRIBE, GenericSubsystemDescribeHandler.INSTANCE, GenericSubsystemDescribeHandler.INSTANCE, false, OperationEntry.EntryType.PRIVATE);
+        final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(
+                SubsystemDefinition.INSTANCE);
+        ManagementResourceRegistration metric = registration.registerSubModel(
+                MetricDefinition.INSTANCE);
+        registration.registerOperationHandler(DESCRIBE, 
+                GenericSubsystemDescribeHandler.INSTANCE, 
+                GenericSubsystemDescribeHandler.INSTANCE, 
+                false, 
+                OperationEntry.EntryType.PRIVATE);
         subsystem.registerXMLElementWriter(parser);
     }
 
@@ -95,13 +102,15 @@ public class SelfmonitorExtension implements Extension {
     /**
      * The subsystem parser, which uses stax to read and write to and from xml
      */
-    private static class SubsystemParser implements XMLStreamConstants, XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
+    private static class SubsystemParser implements XMLStreamConstants, 
+            XMLElementReader<List<ModelNode>>, XMLElementWriter<SubsystemMarshallingContext> {
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public void writeContent(XMLExtendedStreamWriter writer, SubsystemMarshallingContext context) throws XMLStreamException {
+        public void writeContent(XMLExtendedStreamWriter writer, 
+                SubsystemMarshallingContext context) throws XMLStreamException {
             //Write out the main subsystem element
             context.startSubsystemElement(SelfmonitorExtension.NAMESPACE, false);
             writer.writeStartElement(METRICS);

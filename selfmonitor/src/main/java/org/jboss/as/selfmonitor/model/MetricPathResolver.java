@@ -2,16 +2,23 @@ package org.jboss.as.selfmonitor.model;
 
 import java.util.Arrays;
 import org.jboss.dmr.ModelNode;
-import org.apache.commons.lang.ArrayUtils;
 
 /**
- *
+ * Class for resolving path of the server's resource model
+ * 
+ * 
  * @author Vojtech Schlemmer
  */
 public class MetricPathResolver {
 
-    private static final org.jboss.logging.Logger log = org.jboss.logging.Logger.getLogger(MetricPathResolver.class);
-    
+    /**
+     * Parses path of the server's resource model and sets this path 
+     * to the op attribute
+     * 
+     * @param path path to be resolved in form /childType=child [(/childType=child)*]
+     * @param op node to which the resolved path will be set
+     * @return node with path set
+     */
     public static ModelNode resolvePath(String path, ModelNode op){
         ModelNode metricPath = op.get("address");
         if(path.length() <= 1){

@@ -12,7 +12,8 @@ import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceName;
 
 /**
- *
+ * Handler for runtime update of the "path" property of a metric
+ * 
  * @author Vojtech Schlemmer
  */
 public class SelfmonitorPathHandler extends AbstractWriteAttributeHandler<Void> {
@@ -29,20 +30,25 @@ public class SelfmonitorPathHandler extends AbstractWriteAttributeHandler<Void> 
             ModelNode resolvedValue, ModelNode currentValue, 
             HandbackHolder<Void> handbackHolder) 
             throws OperationFailedException {
-         if (attributeName.equals(SelfmonitorExtension.PATH)) {
-             final String metricName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+        if (attributeName.equals(SelfmonitorExtension.PATH)) {
+            final String metricName = PathAddress.pathAddress(operation.get(
+                     ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
             SelfmonitorService service = (SelfmonitorService) context
                     .getServiceRegistry(true)
-                    .getRequiredService(ServiceName.JBOSS.append(SelfmonitorService.NAME)).getValue();
-            service.getMetric(metricName, currentValue.asString()).setPath(resolvedValue.asString());
-            context.completeStep(OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
+                    .getRequiredService(ServiceName.JBOSS.append(
+                            SelfmonitorService.NAME)).getValue();
+            service.getMetric(metricName, currentValue.asString()).setPath(
+                    resolvedValue.asString());
+            context.completeStep(
+                    OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
         }
-
         return false;
     }
 
     @Override
-    protected void revertUpdateToRuntime(OperationContext oc, ModelNode mn, String string, ModelNode mn1, ModelNode mn2, Void t) throws OperationFailedException {
+    protected void revertUpdateToRuntime(OperationContext oc, ModelNode mn, 
+            String string, ModelNode mn1, ModelNode mn2, Void t) 
+            throws OperationFailedException {
         
     }
     
