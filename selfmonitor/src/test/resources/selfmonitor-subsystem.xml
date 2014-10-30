@@ -1,29 +1,13 @@
 <subsystem xmlns="urn:org.jboss.as.selfmonitor:1.0">
     <metrics>
-        <metric name="number-of-aborted-transactions" path="/subsystem=transactions"/>
-        <metric name="number-of-application-rollbacks" path="/subsystem=transactions"/>
-        <metric name="number-of-committed-transactions" path="/subsystem=transactions"/>
-        <metric name="number-of-heuristics" path="/subsystem=transactions"/>
-        <metric name="number-of-inflight-transactions" path="/subsystem=transactions"/>
-        <metric name="number-of-nested-transactions" path="/subsystem=transactions"/>
-        <metric name="number-of-resource-rollbacks" path="/subsystem=transactions"/>
-        <metric name="number-of-timed-out-transactions" path="/subsystem=transactions"/>
-        <metric name="number-of-transactions" path="/subsystem=transactions"/>
-        
-        <metric name="bytesReceived" path="/subsystem=web/connector=http"/>
-        <metric name="bytesSent" path="/subsystem=web/connector=http"/>
-        <metric name="errorCount" path="/subsystem=web/connector=http"/>
-        <metric name="executor" path="/subsystem=web/connector=http"/>
-        <metric name="maxTime" path="/subsystem=web/connector=http"/>
-        <metric name="processingTime" path="/subsystem=web/connector=http"/>
-        <metric name="requestCount" path="/subsystem=web/connector=http"/>
-        
-        <metric name="collection-count" path="/core-service=platform-mbean/type=garbage-collector/name=PS_MarkSweep"/>
-        <metric name="collection-time" path="/core-service=platform-mbean/type=garbage-collector/name=PS_MarkSweep"/>
-        <metric name="memory-pool-names" path="/core-service=platform-mbean/type=garbage-collector/name=PS_MarkSweep"/>
-        <metric name="name" path="/core-service=platform-mbean/type=garbage-collector/name=PS_MarkSweep"/>
-        <metric name="object-name" path="/core-service=platform-mbean/type=garbage-collector/name=PS_MarkSweep"/>
-        <metric name="valid" path="/core-service=platform-mbean/type=garbage-collector/name=PS_MarkSweep"/>
-        
+        <metric name="number-of-aborted-transactions" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-application-rollbacks" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-committed-transactions" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-heuristics" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-inflight-transactions" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-nested-transactions" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-resource-rollbacks" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-timed-out-transactions" path="/subsystem=transactions" enabled="true"/>
+        <metric name="number-of-transactions" path="/subsystem=transactions" enabled="true"/>
     </metrics>
 </subsystem>

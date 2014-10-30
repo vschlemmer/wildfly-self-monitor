@@ -22,6 +22,7 @@ import org.jboss.as.selfmonitor.storage.MetricsMemoryStorage;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.Service;
+import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
@@ -59,6 +60,10 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
             java.util.logging.Logger.getLogger(
                     SelfmonitorService.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public static ServiceName createServiceName() {
+        return ServiceName.JBOSS.append(NAME);
     }
     
     private Thread OUTPUT = new Thread() {

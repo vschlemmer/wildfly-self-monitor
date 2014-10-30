@@ -1,6 +1,5 @@
 package org.jboss.as.selfmonitor;
 
-import org.jboss.as.selfmonitor.SelfmonitorExtension;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

@@ -195,5 +195,12 @@
             <version>${version.commons-lang}</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-subsystem-test-framework</artifactId>
+            <version>${version.wildfly}</version>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>
