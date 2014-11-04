@@ -1,7 +1,6 @@
 package org.jboss.as.selfmonitor.entity;
 
 import java.io.Serializable;
-import java.sql.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,27 +25,27 @@ public class Metric implements Serializable{
     private String name;
     @Column(name = "metric_path")
     private String path;
-    @Column(name = "metric_date")
-    private Date date;
-    @Column(name = "metric_value")
+    @Column(name = "metric_time")
+    private long time;
+    @Column(name = "metric_value", length=1024)
     private String value;
 
     public Metric(){
     }
     
-    public Metric(String name, String path, Date date, String value) {
+    public Metric(String name, String path, long time, String value) {
         this.name = name;
         this.path = path;
-        this.date = date;
+        this.time = time;
         this.value = value;
     }
     
-    public Date getDate() {
-        return date;
+    public long getTime() {
+        return time;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setTime(long time) {
+        this.time = time;
     }
 
     public String getValue() {

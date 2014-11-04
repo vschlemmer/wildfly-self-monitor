@@ -22,5 +22,6 @@
         <module name="org.jboss.vfs"/>
         <module name="org.infinispan"/>
         <module name="org.slf4j"/>
+        <module name="org.quartz-scheduler"/>
     </dependencies>
 </module>

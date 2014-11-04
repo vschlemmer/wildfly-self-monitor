@@ -68,8 +68,9 @@ public class ModelWriter {
                 if(validateNode(returnValue)){
                     String metricPath = returnValue.get("path").asString();
                     boolean metricEnabled = returnValue.get("enabled").asBoolean();
+                    int metricInterval = returnValue.get("interval").asInt();
                     currMetr.add(new ModelMetric(metricName, metricPath, 
-                            metricEnabled));
+                            metricEnabled, metricInterval));
                 }
             }
         }
@@ -114,6 +115,8 @@ public class ModelWriter {
         op.get(SelfmonitorExtension.PATH).set(metric.getPath());
         op.get(SelfmonitorExtension.ENABLED).set(
                 metric.isEnabled() ? "true" : "false");
+        op.get(SelfmonitorExtension.INTERVAL).set(String.valueOf(
+                metric.getInterval()));
         ModelNode returnVal = null;
         try {
             returnVal = client.execute(op);

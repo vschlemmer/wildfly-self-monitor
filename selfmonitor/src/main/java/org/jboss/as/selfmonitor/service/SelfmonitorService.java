@@ -1,31 +1,27 @@
 package org.jboss.as.selfmonitor.service;
 
 import org.jboss.as.selfmonitor.model.ModelMetric;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import org.jboss.as.controller.client.ModelControllerClient;
-import org.jboss.as.controller.client.helpers.ClientConstants;
-import org.jboss.as.selfmonitor.model.MetricPathResolver;
 import org.jboss.as.selfmonitor.model.ModelScanner;
 import org.jboss.as.selfmonitor.model.ModelWriter;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.as.selfmonitor.storage.MetricsDbStorage;
 import org.jboss.as.selfmonitor.storage.MetricsMemoryStorage;
-import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.quartz.Scheduler;
 
 /**
  * Class with selfmonitor service providing the basic functionalities related
@@ -35,7 +31,7 @@ import org.jboss.msc.service.StopContext;
  * 
  * @author Vojtech Schlemmer
  */
-public class SelfmonitorService implements Service<SelfmonitorService> {
+public class SelfmonitorService implements Service<SelfmonitorService>{
 
     public static final String NAME = "SelfmonitorService01";
     public static final String HOST = "localhost";
@@ -44,11 +40,11 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
     public static final String STORAGE_TYPE = "database";
     private final Logger log = Logger.getLogger(SelfmonitorService.class);
     private ModelControllerClient client;
-    private static final long INTERVAL = 5000;
     private static final long STARTUP_TIME = 1000;
     private IMetricsStorage metricsStorage;
     private Set<ModelMetric> metrics = Collections.synchronizedSet(new HashSet<ModelMetric>());
     private Set<String> attributes;
+    private Map<String, Scheduler> jobs;
     private boolean initialized = false;
     
     public SelfmonitorService() {
@@ -83,18 +79,45 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
                         ModelScanner scanner = new ModelScanner(client);
                         ModelWriter writer = new ModelWriter(client);
                         modelScanAttributes(scanner, writer);
+                        jobs = new HashMap<>();
+                        int numberOfJobs = initMetricsStoreJobs();
+                        log.info("Number of metrics monitored: " + numberOfJobs);
                         initialized = true;
                     }
-                    Thread.sleep(INTERVAL);
-                    storeMetrics(new Date(System.currentTimeMillis()));
-                    logStoredMetrics();
+                    Thread.sleep(5000);
+                    for(ModelMetric metric : metrics){
+                        if(metric.isEnabled()){
+                            MonitorMetricJobHandler.logStoredMetric(log, metric, metricsStorage);
+                        }
+                    }                    
                 } catch (InterruptedException e) {
                     interrupted();
                     break;
                 }
             }
         }
+        
     };
+    
+    
+    private int initMetricsStoreJobs(){
+        int numberOfEnabledMetrics = 0;
+        for(ModelMetric metric : metrics){
+            if(metric.isEnabled()){
+                initSingleMetricJob(metric);
+                numberOfEnabledMetrics++;
+            }
+        }
+        return numberOfEnabledMetrics;   
+    }
+    
+    private void initSingleMetricJob(ModelMetric metric){
+        Scheduler scheduler = MonitorMetricJobHandler.initSingleMetricJob(
+                metric, client, metricsStorage);
+        if(scheduler != null){
+            jobs.put(metric.getName(), scheduler);
+        }
+    }
     
     /**
      * Scans the whole resource model and for each node collects it's runtime
@@ -143,77 +166,11 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         if(pathLength > 0){
             metricPath = metricPath.substring(0, pathLength-1);
         }
-        ModelMetric m = new ModelMetric(metricName, metricPath, false);
+        ModelMetric m = new ModelMetric(metricName, metricPath, false, 5);
         return m;
     }
     
-    /**
-     * Stores all enabled metrics in "metrics" property with their values
-     * 
-     * @param time date and time of capturing the metric's value
-     */
-    private void storeMetrics(Date time){
-        for(ModelMetric metric : metrics){
-            if(metric.isEnabled()){
-                ModelNode op = new ModelNode();
-                op.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
-                op.get(ClientConstants.INCLUDE_RUNTIME).set(true);  
-                MetricPathResolver.resolvePath(metric.getPath(), op);
-                ModelNode returnVal = null;
-                try {
-                    returnVal = client.execute(op);
-                } catch (IOException ex) {
-                    java.util.logging.Logger.getLogger(SelfmonitorService.class
-                            .getName()).log(Level.SEVERE, null, ex);
-                }
-                if (returnVal != null){
-                    Object metricValue = returnVal.get(
-                            ClientConstants.RESULT).get(metric.getName());
-                    // TODO: remove toString(), inspect the metrics' values
-                    storeMetric(metric.getName(), 
-                            metric.getPath(), metricValue.toString(), time);
-                }
-            }
-        }
-    }
     
-    /**
-     * Retrieves all records of all metrics from the storage and writes it
-     * into log
-     */
-    private void logStoredMetrics(){
-        SimpleDateFormat printFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-        for(ModelMetric metric : metrics){
-            if(metric.isEnabled()){
-                log.info("==================================");
-                log.info(metric.getName());
-                log.info("==================================");
-                log.info("Date and time            | value");
-                log.info("------------------------------------");
-                Map<Date, Object> metricData = metricsStorage.getMetricRecords(
-                        metric.getName(), metric.getPath());
-                for (Map.Entry<Date, Object> entry : metricData.entrySet()){
-                    log.info(entry.getKey() + " " + 
-                            printFormat.format(entry.getKey()) + 
-                            "  |  " + entry.getValue().toString());
-                }
-            }
-        }
-    }
-    
-    /**
-     * Stores a metric with its value and time when the value was captured 
-     * into the storage
-     * 
-     * @param metricName name of the metric
-     * @param metricPath path to the metric in the model
-     * @param value value of the metric
-     * @param time date and time when the metric's value was captured
-     */
-    private void storeMetric(String metricName, String metricPath, 
-            Object value, Date time){
-        metricsStorage.addMetric(metricName, metricPath, time, value);
-    }
     
     @Override
     public void start(StartContext sc) throws StartException {
@@ -240,10 +197,30 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
     
     public void addMetric(ModelMetric metric){
         metrics.add(metric);
+        if(initialized){
+            initSingleMetricJob(metric);
+        }
     }
     
     public void removeMetric(ModelMetric metric){
         metrics.remove(metric);
+    }
+    
+    public void changeMetricEnabled(String metricName, String metricPath, boolean enabled){
+        ModelMetric m = getMetric(metricName, metricPath);
+        m.setEnabled(enabled);
+        if(initialized){
+            jobs = MonitorMetricJobHandler.changeMetricEnabled(m, jobs, 
+                    client, metricsStorage);
+        }
+    }
+    
+    public void changeMetricInterval(String metricName, String metricPath, int interval){
+        ModelMetric m = getMetric(metricName, metricPath);
+        m.setInterval(interval);
+        if(initialized && m.isEnabled() && jobs.containsKey(metricName)){
+            MonitorMetricJobHandler.changeJobInterval(jobs, m);
+        }
     }
     
     /**
@@ -262,5 +239,5 @@ public class SelfmonitorService implements Service<SelfmonitorService> {
         }
         return null;
     }
-    
+
 }

@@ -13,29 +13,29 @@ import java.util.TreeMap;
  */
 public class MetricsMemoryStorage implements IMetricsStorage {
 
-    private Map<String, Map<Date, Object>> metrics;
+    private Map<String, Map<Long, Object>> metrics;
 
     public MetricsMemoryStorage(){
         metrics = new HashMap<>();
         metrics = Collections.synchronizedMap(metrics);
     }
     
-    public Map<String, Map<Date, Object>> getMetrics() {
+    public Map<String, Map<Long, Object>> getMetrics() {
         return metrics;
     }
 
-    public void setMetrics(Map<String, Map<Date, Object>> metrics) {
+    public void setMetrics(Map<String, Map<Long, Object>> metrics) {
         this.metrics = metrics;
     }
     
     @Override
-    public void addMetric(String metricName, String metricPath, Date date, Object value) {
+    public void addMetric(String metricName, String metricPath, long time, Object value) {
         String metricId = getMetricId(metricName, metricPath);
-        addMetricRecord(metricId, date, value);
+        addMetricRecord(metricId, time, value);
     }
     
     @Override
-    public Map<Date, Object> getMetricRecords(String metricName, String metricPath){
+    public Map<Long, Object> getMetricRecords(String metricName, String metricPath){
         String metricId = getMetricId(metricName, metricPath);
         return this.metrics.get(metricId);
     }
@@ -48,13 +48,13 @@ public class MetricsMemoryStorage implements IMetricsStorage {
      * @param date date when the metric value has been captured
      * @param value  value of the metric
      */
-    private void addMetricRecord(String metricId, Date date, Object value){
+    private void addMetricRecord(String metricId, long time, Object value){
         if (this.metrics.containsKey(metricId)){
-            this.metrics.get(metricId).put(date, value);
+            this.metrics.get(metricId).put(new Long(time), value);
         }
         else{
-            Map<Date, Object> newRecord = new TreeMap<>();
-            newRecord.put(date, value);
+            Map<Long, Object> newRecord = new TreeMap<>();
+            newRecord.put(new Long(time), value);
             this.metrics.put(metricId, newRecord);
         }
     }

@@ -8,6 +8,7 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import static org.jboss.as.selfmonitor.SelfmonitorExtension.METRIC;
 import static org.jboss.as.selfmonitor.SelfmonitorExtension.METRIC_PATH;
 import org.jboss.as.selfmonitor.model.SelfmonitorEnabledHandler;
+import org.jboss.as.selfmonitor.model.SelfmonitorIntervalHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorPathHandler;
 import org.jboss.dmr.ModelType;
 
@@ -41,6 +42,14 @@ public class MetricDefinition extends SimpleResourceDefinition {
       .setAllowNull(false)
       .build();
     
+    public static final SimpleAttributeDefinition INTERVAL =
+    new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.INTERVAL, ModelType.INT)
+      .setAllowExpression(true)
+      .setXmlName(SelfmonitorExtension.INTERVAL)
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .build();
+    
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
@@ -51,5 +60,6 @@ public class MetricDefinition extends SimpleResourceDefinition {
     public void registerAttributes(ManagementResourceRegistration resourceRegistration){
        resourceRegistration.registerReadWriteAttribute(PATH, null, SelfmonitorPathHandler.INSTANCE);
        resourceRegistration.registerReadWriteAttribute(ENABLED, null, SelfmonitorEnabledHandler.INSTANCE);
+       resourceRegistration.registerReadWriteAttribute(INTERVAL, null, SelfmonitorIntervalHandler.INSTANCE);
     }
 }

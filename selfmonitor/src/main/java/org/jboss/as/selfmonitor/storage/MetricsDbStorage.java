@@ -1,6 +1,5 @@
 package org.jboss.as.selfmonitor.storage;
 
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,36 +18,11 @@ import org.jboss.logging.Logger;
 public class MetricsDbStorage implements IMetricsStorage {
 
     private final Logger log = Logger.getLogger(MetricsDbStorage.class);
-    private EntityManager entityManager;
+    private EntityManagerFactory emf;
     public static final String PERSISTENCE_UNIT_NAME = "SelfmonitorPU";
     
     public MetricsDbStorage(){
-        this.entityManager = createEntityManagerFactory(
-                PERSISTENCE_UNIT_NAME).createEntityManager();
-    }
-    
-    /**
-     * TODO: delete - for test purposes
-     * tests whether the database is initialized properly
-     */
-    public void initDatabase(){
-        if(entityManager != null){
-            Metric m = new Metric("testMetric1", "testMetric1", 
-                    new Date(System.currentTimeMillis()), null);
-            entityManager.getTransaction().begin();
-            entityManager.persist(m);
-            entityManager.getTransaction().commit();
-            String queryString = "SELECT m FROM Metric m WHERE m.name = 'testMetric1'";
-            Query q = entityManager.createQuery(queryString, Metric.class);
-            List<Metric> metrics = q.getResultList();
-            if(metrics.size() > 0){
-                log.info("Test metric stored: " + metrics.get(0).getName());
-            }
-//            entityManager.close();
-        }
-        else{
-            log.info("EntityManager is null");
-        }
+        this.emf = createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
     }
     
     /**
@@ -69,18 +43,23 @@ public class MetricsDbStorage implements IMetricsStorage {
     }
 
     @Override
-    public void addMetric(String metricName, String metricPath, Date date, Object value) {
-        Metric metric = new Metric(metricName, metricPath, date, (String) value);
+    public void addMetric(String metricName, String metricPath, long time, Object value) {
+        Metric metric = new Metric(metricName, metricPath, time, (String) value);
+//        log.info("------------------------------");
+//        log.info("metricName: " + metricName);
+//        log.info("time: " + time);
+        EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();
         entityManager.persist(metric);
         entityManager.getTransaction().commit();
+        entityManager.close();
     }
 
     @Override
-    public Map<Date, Object> getMetricRecords(String metricName, String metricPath) {
-        Map<Date, Object> metricRecords = new HashMap<>();
+    public Map<Long, Object> getMetricRecords(String metricName, String metricPath) {
+        Map<Long, Object> metricRecords = new HashMap<>();
         for (Metric m : retrieveMetricRecords(metricName, metricPath)){
-            metricRecords.put(m.getDate(), m.getValue());
+            metricRecords.put(new Long(m.getTime()), m.getValue());
         }
         return metricRecords;
     }
@@ -94,9 +73,10 @@ public class MetricsDbStorage implements IMetricsStorage {
     private List<Metric> retrieveMetricRecords(String metricName, String metricPath){
         String queryString = "SELECT m FROM Metric m WHERE m.name = '" +
                 metricName + "' AND m.path = '" + metricPath + "'";
+        EntityManager entityManager = emf.createEntityManager();
         Query q = entityManager.createQuery(queryString, Metric.class);
         List<Metric> metrics = q.getResultList();
+        entityManager.close();
         return metrics;
     }
-    
 }

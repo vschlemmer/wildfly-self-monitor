@@ -1,0 +1,34 @@
+Nov 04, 2014 10:41:14 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
+INFO: Populating the model
+Nov 04, 2014 10:41:15 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
+INFO: Populating the model
+Nov 04, 2014 10:41:15 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
+INFO: Populating the model
+Nov 04, 2014 10:41:15 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
+INFO: Populating the model
+Nov 04, 2014 10:41:15 AM org.jboss.as.controller.client.impl.RemotingModelControllerClient finalize
+WARN: JBAS010600: Closing leaked controller client
+JBAS010649: Allocation stack trace:
+	at java.lang.Thread.getStackTrace(Thread.java:1589)
+	at org.jboss.as.controller.client.impl.RemotingModelControllerClient.<init>(RemotingModelControllerClient.java:76)
+	at org.jboss.as.controller.client.ModelControllerClient$Factory.create(ModelControllerClient.java:353)
+	at org.jboss.as.controller.client.ModelControllerClient$Factory.create(ModelControllerClient.java:123)
+	at org.jboss.as.selfmonitor.service.SelfmonitorService.<init>(SelfmonitorService.java:53)
+	at org.jboss.as.selfmonitor.SubsystemAdd.performBoottime(SubsystemAdd.java:41)
+	at org.jboss.as.controller.AbstractBoottimeAddStepHandler.performRuntime(AbstractBoottimeAddStepHandler.java:69)
+	at org.jboss.as.controller.AbstractAddStepHandler$1.execute(AbstractAddStepHandler.java:75)
+	at org.jboss.as.controller.AbstractOperationContext.executeStep(AbstractOperationContext.java:606)
+	at org.jboss.as.controller.AbstractOperationContext.doCompleteStep(AbstractOperationContext.java:484)
+	at org.jboss.as.controller.AbstractOperationContext.completeStepInternal(AbstractOperationContext.java:281)
+	at org.jboss.as.controller.AbstractOperationContext.executeOperation(AbstractOperationContext.java:276)
+	at org.jboss.as.controller.ModelControllerImpl.boot(ModelControllerImpl.java:319)
+	at org.jboss.as.controller.AbstractControllerService.boot(AbstractControllerService.java:294)
+	at org.jboss.as.model.test.ModelTestModelControllerService.boot(ModelTestModelControllerService.java:202)
+	at org.jboss.as.controller.AbstractControllerService.boot(AbstractControllerService.java:289)
+	at org.jboss.as.controller.AbstractControllerService$1.run(AbstractControllerService.java:256)
+	at java.lang.Thread.run(Thread.java:745)
+
+Nov 04, 2014 10:41:15 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
+INFO: Populating the model
+Nov 04, 2014 10:41:15 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
+INFO: Populating the model

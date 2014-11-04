@@ -39,6 +39,7 @@
 		<version.jboss.bom>8.1.0.Final</version.jboss.bom>
         <version.jboss-msc>1.2.2.Final</version.jboss-msc>
         <version.commons-lang>2.4</version.commons-lang>
+        <version.quartz>2.1.7</version.quartz>
         
     </properties>
     
@@ -133,6 +134,20 @@
                 <type>pom</type>
                 <scope>import</scope>
           </dependency>
+<!--          <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz</artifactId>
+                <version>${version.quartz}</version>
+                <scope>import</scope>
+                <type>pom</type>
+          </dependency>
+          <dependency>
+                <groupId>org.quartz-scheduler</groupId>
+                <artifactId>quartz-jboss</artifactId>
+                <version>${version.quartz}</version>
+                <scope>import</scope>
+                <type>pom</type>
+          </dependency>-->
 	  </dependencies>
     </dependencyManagement>
 
@@ -202,5 +217,19 @@
             <scope>test</scope>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>${version.quartz}</version>
+            <!--<type>jar</type>-->
+<!--            <scope>provided</scope>-->
+        </dependency>
+<!--        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz-jboss</artifactId>
+            <version>${version.quartz}</version>
+            <type>jar</type>-->
+<!--            <scope>provided</scope>-->
+        <!--</dependency>-->
     </dependencies>
 </project>

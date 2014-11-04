@@ -10,6 +10,7 @@ import org.jboss.as.controller.ServiceVerificationHandler;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import static org.jboss.as.selfmonitor.MetricDefinition.PATH;
 import static org.jboss.as.selfmonitor.MetricDefinition.ENABLED;
+import static org.jboss.as.selfmonitor.MetricDefinition.INTERVAL;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceController;
@@ -28,6 +29,7 @@ public class MetricAdd extends AbstractAddStepHandler {
     protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {
         PATH.validateAndSet(operation, model);
         ENABLED.validateAndSet(operation, model);
+        INTERVAL.validateAndSet(operation, model);
     }
     
     @Override
@@ -40,11 +42,12 @@ public class MetricAdd extends AbstractAddStepHandler {
         String metricName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
         String metricPath = PATH.resolveModelAttribute(context,model).asString();
         boolean enabled = ENABLED.resolveModelAttribute(context,model).asBoolean();
+        int interval = INTERVAL.resolveModelAttribute(context,model).asInt();
         ModelMetric metricInService = service.getMetric(metricName, metricPath);
         if(metricInService != null){
             service.removeMetric(metricInService);
         }
-        ModelMetric metric = new ModelMetric(metricName, metricPath, enabled);
+        ModelMetric metric = new ModelMetric(metricName, metricPath, enabled, interval);
         service.addMetric(metric);
     }
     

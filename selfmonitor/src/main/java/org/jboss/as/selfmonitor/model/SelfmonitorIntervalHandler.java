@@ -16,12 +16,12 @@ import org.jboss.msc.service.ServiceName;
  * 
  * @author Vojtech Schlemmer
  */
-public class SelfmonitorEnabledHandler extends AbstractWriteAttributeHandler<Void> {
+public class SelfmonitorIntervalHandler extends AbstractWriteAttributeHandler<Void> {
 
-    public static final SelfmonitorEnabledHandler INSTANCE = new SelfmonitorEnabledHandler();
+    public static final SelfmonitorIntervalHandler INSTANCE = new SelfmonitorIntervalHandler();
 
-    private SelfmonitorEnabledHandler() {
-        super(MetricDefinition.ENABLED);
+    private SelfmonitorIntervalHandler() {
+        super(MetricDefinition.INTERVAL);
     }
     
     @Override
@@ -30,7 +30,7 @@ public class SelfmonitorEnabledHandler extends AbstractWriteAttributeHandler<Voi
             ModelNode resolvedValue, ModelNode currentValue, 
             HandbackHolder<Void> handbackHolder) 
             throws OperationFailedException {
-        if (attributeName.equals(SelfmonitorExtension.ENABLED)) {
+        if (attributeName.equals(SelfmonitorExtension.INTERVAL)) {
             ModelNode submodel = context.readResource(
                     PathAddress.EMPTY_ADDRESS).getModel();
             final String metricName = PathAddress.pathAddress(operation.get(
@@ -41,7 +41,7 @@ public class SelfmonitorEnabledHandler extends AbstractWriteAttributeHandler<Voi
                     .getServiceRegistry(true)
                     .getRequiredService(ServiceName.JBOSS.append(
                             SelfmonitorService.NAME)).getValue();
-            service.changeMetricEnabled(metricName, metricPath, resolvedValue.asBoolean());
+            service.changeMetricInterval(metricName, metricPath, resolvedValue.asInt());
             context.completeStep(
                     OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
         }

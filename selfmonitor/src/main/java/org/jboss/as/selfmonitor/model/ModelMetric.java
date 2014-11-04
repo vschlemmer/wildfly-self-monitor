@@ -13,11 +13,21 @@ public class ModelMetric {
     private String name;
     private String path;
     private boolean enabled;
+    private int interval;
 
-    public ModelMetric(String name, String path, boolean enabled) {
+    public ModelMetric(String name, String path, boolean enabled, int interval) {
         this.name = name;
         this.path = path;
         this.enabled = enabled;
+        this.interval = interval;
+    }
+
+    public int getInterval() {
+        return interval;
+    }
+
+    public void setInterval(int interval) {
+        this.interval = interval;
     }
     
     public boolean isEnabled() {
