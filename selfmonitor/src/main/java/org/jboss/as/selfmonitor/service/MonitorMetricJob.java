@@ -105,7 +105,7 @@ public class MonitorMetricJob implements Job, InterruptableJob {
      * @param time date and time when the metric's value was captured
      */
     private void storeMetricValue(ModelMetric metric, 
-            Object value, long time, IMetricsStorage metricsStorage){
+            String value, long time, IMetricsStorage metricsStorage){
         metricsStorage.addMetric(metric.getName(), metric.getPath(), time, value);
     }
     

@@ -43,7 +43,7 @@ public class MetricsDbStorage implements IMetricsStorage {
     }
 
     @Override
-    public void addMetric(String metricName, String metricPath, long time, Object value) {
+    public void addMetric(String metricName, String metricPath, long time, String value) {
         Metric metric = new Metric(metricName, metricPath, time, (String) value);
 //        log.info("------------------------------");
 //        log.info("metricName: " + metricName);
@@ -56,8 +56,8 @@ public class MetricsDbStorage implements IMetricsStorage {
     }
 
     @Override
-    public Map<Long, Object> getMetricRecords(String metricName, String metricPath) {
-        Map<Long, Object> metricRecords = new HashMap<>();
+    public Map<Long, String> getMetricRecords(String metricName, String metricPath) {
+        Map<Long, String> metricRecords = new HashMap<>();
         for (Metric m : retrieveMetricRecords(metricName, metricPath)){
             metricRecords.put(new Long(m.getTime()), m.getValue());
         }

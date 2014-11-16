@@ -1,7 +1,6 @@
 package org.jboss.as.selfmonitor.storage;
 
 import java.io.Serializable;
-import java.sql.Date;
 import java.util.Map;
 
 /**
@@ -19,16 +18,16 @@ public interface IMetricsStorage extends Serializable {
      * @param time Time the metric was captured in seconds
      * @param value Value of the metric
      */
-    public void addMetric(String metricName, String metricPath, long time, Object value);
+    public void addMetric(String metricName, String metricPath, long time, String value);
     
     /**
-     * retrieves values of a given metric in time
+     * retrieves values of a given metric
      * 
      * @param metricName name of the metric
      * @param metricPath path to the metric's resource
      * @return map where keys are time when metric was captured in seconds 
      * and values are values of the metric at the given time
      */
-    public Map<Long, Object> getMetricRecords(String metricName, String metricPath);
+    public Map<Long, String> getMetricRecords(String metricName, String metricPath);
     
 }

@@ -84,7 +84,7 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
                         log.info("Number of metrics monitored: " + numberOfJobs);
                         initialized = true;
                     }
-                    Thread.sleep(5000);
+                    Thread.sleep(10000);
                     for(ModelMetric metric : metrics){
                         if(metric.isEnabled()){
                             MonitorMetricJobHandler.logStoredMetric(log, metric, metricsStorage);
@@ -139,7 +139,7 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
                 metrics.add(m);
             }
         }
-        log.info("Added " + attributes.size() + " metrics");
+        log.info("Added " + metrics.size() + " metrics");
         return attributes.size();
     }
     
@@ -238,6 +238,14 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
             }
         }
         return null;
+    }
+
+    public IMetricsStorage getMetricsStorage() {
+        return metricsStorage;
+    }
+    
+    public ModelControllerClient getClient(){
+        return client;
     }
 
 }

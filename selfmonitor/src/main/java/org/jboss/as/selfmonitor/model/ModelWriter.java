@@ -18,8 +18,8 @@ import org.jboss.as.selfmonitor.SelfmonitorExtension;
  */
 public class ModelWriter {
     
-    private ModelControllerClient client;
-    private Set<ModelMetric> currentMetrics;
+    private final ModelControllerClient client;
+    private final Set<ModelMetric> currentMetrics;
     public static final String READ_CHILDREN_NAMES = "read-children-names";
     public static final String METRIC = "metric";
     public String subsystemPath;
@@ -35,7 +35,7 @@ public class ModelWriter {
      * 
      * @return set of metrics
      */
-    private Set<ModelMetric> getCurrentMetrics(){
+    public final Set<ModelMetric> getCurrentMetrics(){
         Set<ModelMetric> currMetr = new HashSet<>();
         ModelNode op = new ModelNode();
         MetricPathResolver.resolvePath(subsystemPath, op);

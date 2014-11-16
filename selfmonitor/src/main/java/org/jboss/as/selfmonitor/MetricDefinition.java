@@ -1,7 +1,10 @@
 package org.jboss.as.selfmonitor;
 
+import org.jboss.as.selfmonitor.model.operations.MetricReadValues;
+import org.jboss.as.controller.OperationDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
@@ -10,6 +13,8 @@ import static org.jboss.as.selfmonitor.SelfmonitorExtension.METRIC_PATH;
 import org.jboss.as.selfmonitor.model.SelfmonitorEnabledHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorIntervalHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorPathHandler;
+import org.jboss.as.selfmonitor.model.operations.MetricReadValue;
+import org.jboss.as.selfmonitor.model.operations.MetricValueOccurred;
 import org.jboss.dmr.ModelType;
 
 /**
@@ -18,6 +23,9 @@ import org.jboss.dmr.ModelType;
  */
 public class MetricDefinition extends SimpleResourceDefinition {
     public static final MetricDefinition INSTANCE = new MetricDefinition();
+    public static final String READ_VALUES_STRING = "read-values";
+    public static final String READ_VALUE_STRING = "read-value";
+    public static final String VALUE_OCCURRED_STRING = "value-occurred";
     
     private MetricDefinition(){
        super(METRIC_PATH, 
@@ -26,6 +34,7 @@ public class MetricDefinition extends SimpleResourceDefinition {
                MetricRemove.INSTANCE);
     }
 
+    //attributes
     public static final SimpleAttributeDefinition PATH =
     new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.PATH, ModelType.STRING)
       .setAllowExpression(true)
@@ -50,10 +59,80 @@ public class MetricDefinition extends SimpleResourceDefinition {
       .setAllowNull(false)
       .build();
     
+    //operations' parameters
+    public static final SimpleAttributeDefinition DATE_FROM =
+    new SimpleAttributeDefinitionBuilder("date-from", ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName("date-from")
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .build();
+    
+    public static final SimpleAttributeDefinition DATE_TO =
+    new SimpleAttributeDefinitionBuilder("date-to", ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName("date-to")
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .build();
+    
+    public static final SimpleAttributeDefinition FUNCTION_TYPE =
+    new SimpleAttributeDefinitionBuilder("function-type", ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName("function-type")
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .build();
+    
+    public static final SimpleAttributeDefinition DATE =
+    new SimpleAttributeDefinitionBuilder("date", ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName("date")
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .build();
+    
+    public static final SimpleAttributeDefinition VALUE =
+    new SimpleAttributeDefinitionBuilder("value", ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName("value")
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .build();
+    
+    
+    // operations
+    static final OperationDefinition READ_VALUES = new SimpleOperationDefinitionBuilder(
+            READ_VALUES_STRING, SelfmonitorExtension.getResourceDescriptionResolver(
+                    "metric"))
+            .setRuntimeOnly()
+            .addParameter(DATE_FROM)
+            .addParameter(DATE_TO)
+            .addParameter(FUNCTION_TYPE)
+            .build();
+    
+    static final OperationDefinition READ_VALUE = new SimpleOperationDefinitionBuilder(
+            READ_VALUE_STRING, SelfmonitorExtension.getResourceDescriptionResolver(
+                    "metric"))
+            .setRuntimeOnly()
+            .addParameter(DATE)
+            .build();
+
+    static final OperationDefinition VALUE_OCCURRED = new SimpleOperationDefinitionBuilder(
+            VALUE_OCCURRED_STRING, SelfmonitorExtension.getResourceDescriptionResolver(
+                    "metric"))
+            .setRuntimeOnly()
+            .addParameter(DATE_FROM)
+            .addParameter(DATE_TO)
+            .addParameter(VALUE)
+            .build();
+    
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
-        //you can register aditional operations here
+        resourceRegistration.registerOperationHandler(MetricDefinition.READ_VALUES, new MetricReadValues());
+        resourceRegistration.registerOperationHandler(MetricDefinition.READ_VALUE, new MetricReadValue());
+        resourceRegistration.registerOperationHandler(MetricDefinition.VALUE_OCCURRED, new MetricValueOccurred());
     }
     
     @Override

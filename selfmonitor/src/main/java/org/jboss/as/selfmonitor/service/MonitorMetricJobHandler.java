@@ -144,12 +144,12 @@ public class MonitorMetricJobHandler {
         log.info("==================================");
         log.info("Date and time     | value");
         log.info("----------------------------------");
-        Map<Long, Object> metricData = metricsStorage.getMetricRecords(
+        Map<Long, String> metricData = metricsStorage.getMetricRecords(
                 metric.getName(), metric.getPath());
-        Map<Long, Object> sortedMetricData = new TreeMap<>(metricData);
-        for (Map.Entry<Long, Object> entry : sortedMetricData.entrySet()){
+        Map<Long, String> sortedMetricData = new TreeMap<>(metricData);
+        for (Map.Entry<Long, String> entry : sortedMetricData.entrySet()){
             log.info(printFormat.format(new Date(entry.getKey().longValue() * 1000)) + 
-                    "          |  " + entry.getValue().toString());
+                    "          |  " + entry.getValue());
         }
     }
 }
