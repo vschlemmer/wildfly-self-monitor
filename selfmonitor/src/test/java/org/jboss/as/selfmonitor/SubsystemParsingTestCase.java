@@ -54,7 +54,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         List<ModelNode> operations = super.parse(subsystemXml);
         
         ///Check that we have the expected number of operations
-        Assert.assertEquals(10, operations.size());
+        Assert.assertEquals(3, operations.size());
         
         //Check that each operation has the correct content
         ModelNode addSubsystem = operations.get(0);

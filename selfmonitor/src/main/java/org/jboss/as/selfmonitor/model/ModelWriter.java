@@ -19,7 +19,7 @@ import org.jboss.as.selfmonitor.SelfmonitorExtension;
 public class ModelWriter {
     
     private final ModelControllerClient client;
-    private final Set<ModelMetric> currentMetrics;
+    private final Set<String> currentMetricIds;
     public static final String READ_CHILDREN_NAMES = "read-children-names";
     public static final String METRIC = "metric";
     public String subsystemPath;
@@ -27,7 +27,7 @@ public class ModelWriter {
     public ModelWriter(ModelControllerClient client){
         subsystemPath = SUBSYSTEM + "=" + SelfmonitorExtension.SUBSYSTEM_NAME;
         this.client = client;
-        this.currentMetrics = getCurrentMetrics();
+        this.currentMetricIds = getCurrentMetricIds();
     }
     
     /**
@@ -35,8 +35,8 @@ public class ModelWriter {
      * 
      * @return set of metrics
      */
-    public final Set<ModelMetric> getCurrentMetrics(){
-        Set<ModelMetric> currMetr = new HashSet<>();
+    public final Set<String> getCurrentMetricIds(){
+        Set<String> currMetrIds = new HashSet<>();
         ModelNode op = new ModelNode();
         MetricPathResolver.resolvePath(subsystemPath, op);
         op.get(ClientConstants.OP).set(READ_CHILDREN_NAMES);
@@ -51,10 +51,10 @@ public class ModelWriter {
         if(validateNode(childrenNames)){
             ModelNode returnValue;
             for(ModelNode childName : childrenNames.asList()){
-                String metricName = childName.asString();
+                String metricId = childName.asString();
                 ModelNode opResult = new ModelNode();
                 MetricPathResolver.resolvePath(
-                        subsystemPath + "/metric=" + metricName, opResult);
+                        subsystemPath + "/metric=" + metricId, opResult);
                 opResult.get(ClientConstants.OP).set(
                         ClientConstants.READ_RESOURCE_OPERATION);
                 returnValue = null;
@@ -66,15 +66,11 @@ public class ModelWriter {
                         ModelWriter.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 if(validateNode(returnValue)){
-                    String metricPath = returnValue.get("path").asString();
-                    boolean metricEnabled = returnValue.get("enabled").asBoolean();
-                    int metricInterval = returnValue.get("interval").asInt();
-                    currMetr.add(new ModelMetric(metricName, metricPath, 
-                            metricEnabled, metricInterval));
+                    currMetrIds.add(metricId);
                 }
             }
         }
-        return currMetr;
+        return currMetrIds;
     }
     
     /**
@@ -94,7 +90,7 @@ public class ModelWriter {
      * @param metric 
      */
     public void addMetricToModelIfNotPresent(ModelMetric metric){
-        if(!currentMetrics.contains(metric)){
+        if(!currentMetricIds.contains(metric.getId())){
             addMetric(metric);
         }
     }
@@ -107,16 +103,23 @@ public class ModelWriter {
      * @param metric metric to be added
      */
     private void addMetric(ModelMetric metric){
-//        log.info("subsystem path: " + subsystemPath);
         ModelNode op = new ModelNode();
-        String addMetricPath = subsystemPath + "/metric=" + metric.getName();
+        String addMetricPath = subsystemPath + "/metric=" + metric.getId();
         MetricPathResolver.resolvePath(addMetricPath, op);
         op.get(ClientConstants.OP).set(ClientConstants.ADD);
-        op.get(SelfmonitorExtension.PATH).set(metric.getPath());
-        op.get(SelfmonitorExtension.ENABLED).set(
-                metric.isEnabled() ? "true" : "false");
+        if(metric.getPath() != null && !metric.getPath().equals("")){
+            op.get(SelfmonitorExtension.PATH).set(metric.getPath());
+        }
+        op.get(SelfmonitorExtension.ENABLED).set(String.valueOf(
+                metric.isEnabled()));
         op.get(SelfmonitorExtension.INTERVAL).set(String.valueOf(
                 metric.getInterval()));
+        op.get(SelfmonitorExtension.TYPE).set(String.valueOf(
+                metric.getType()));
+        op.get(SelfmonitorExtension.DESCRIPTION).set(String.valueOf(
+                metric.getDescription()));
+        op.get(SelfmonitorExtension.NILLABLE).set(String.valueOf(
+                metric.isNillable()));
         ModelNode returnVal = null;
         try {
             returnVal = client.execute(op);
@@ -124,7 +127,7 @@ public class ModelWriter {
             java.util.logging.Logger.getLogger(
                     ModelWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
-        currentMetrics.add(metric);
+        currentMetricIds.add(metric.getId());
     }
     
     /**
@@ -145,6 +148,7 @@ public class ModelWriter {
                         .getName()).log(Level.SEVERE, null, ex);
             }
         }
+        currentMetricIds.remove(metric.getId());
     }
     
     /**

@@ -12,7 +12,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.selfmonitor.service.SelfmonitorService;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.dmr.ModelNode;
@@ -34,12 +33,10 @@ public class MetricValueOccurred implements OperationStepHandler {
     @Override
     public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
         final PathAddress address = PathAddress.pathAddress(operation.require(OP_ADDR));
-        final String metricName = address.getLastElement().getValue();
+        final String metricId = address.getLastElement().getValue();
         String stringDateFrom = operation.get("date-from").asString();
         String stringDateTo = operation.get("date-to").asString();
         String value = operation.get("value").asString();
-        Resource resource = context.readResourceFromRoot(address);
-        String metricPath = resource.getModel().get("path").asString();
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         Date dateFrom = null;
         Date dateTo = null;
@@ -52,7 +49,7 @@ public class MetricValueOccurred implements OperationStepHandler {
             output = "Problem with parsing date. Expecting format " + DATE_FORMAT;
         }
         if(output.length() == 0) {
-            metrics = getMetricValues(dateFrom, dateTo, metricName, metricPath, value, context);
+            metrics = getMetricValues(dateFrom, dateTo, metricId, value, context);
             if(metrics.isEmpty()){
                 output = "No such value occurrence found";
                 context.getResult().set(output);
@@ -67,27 +64,19 @@ public class MetricValueOccurred implements OperationStepHandler {
         context.stepCompleted();
     }
     
-    private Set<ModelNode> getMetricValues(Date dateFrom, Date dateTo, String metricName, 
-            String metricPath, String value, OperationContext context){
+    private Set<ModelNode> getMetricValues(Date dateFrom, Date dateTo, String metricId, 
+            String value, OperationContext context){
+        value = removeQuotes(value);
         IMetricsStorage storage = getStorage(context);
         Set<ModelNode> metricNodes = new HashSet<>();
-        Map<Long, String> metricValues = storage.getMetricRecords(
-                metricName, metricPath);
+        Map<Long, String> metricValues = storage.getMetricRecords(metricId);
         for (Map.Entry<Long, String> entry : metricValues.entrySet()){
-            // hack to compare Long values (strips the trailing L if present)
             String entryValue = entry.getValue();
-            try{
-                String entryNewValue = entryValue;
-                if(entryValue.length() > 0 && entryValue.charAt(entryValue.length()-1)=='L') {
-                    entryNewValue = entryValue.substring(0, entryValue.length()-1);
-                    Long.parseLong(entryNewValue);
-                }
-                log.info("exception not raised");
-                entryValue = entryNewValue;
-            } catch(NumberFormatException e){
-                log.info("exception raised");
+            entryValue = removeQuotes(entryValue);
+            // hack to compare Long values (strips the trailing L if present)
+            if(entryValue.length() > 0 && entryValue.charAt(entryValue.length()-1)=='L') {
+                entryValue = entryValue.substring(0, entryValue.length()-1);
             }
-            log.info("value: " + value + ", entryValue: " + entryValue);
             if(entry.getKey().longValue() >= dateFrom.getTime()/1000 &&
                entry.getKey().longValue() <= dateTo.getTime()/1000 &&
                entryValue.equals(value)){
@@ -107,6 +96,18 @@ public class MetricValueOccurred implements OperationStepHandler {
                 .getService(ServiceName.JBOSS.append(SelfmonitorService.NAME));
         SelfmonitorService service = (SelfmonitorService) serviceController.getService();
         return service.getMetricsStorage();
+    }
+    
+    private String removeQuotes(String input){
+        if(input.indexOf('"') == 0 && 
+           input.lastIndexOf('"') == input.length()-1){
+            input = input.substring(1, input.length()-1);
+        }
+        if(input.indexOf("'") == 0 && 
+           input.lastIndexOf("'") == input.length()-1){
+            input = input.substring(1, input.length()-1);
+        }
+        return input;
     }
     
 }

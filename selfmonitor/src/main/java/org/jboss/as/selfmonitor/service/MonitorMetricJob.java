@@ -6,6 +6,7 @@ import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.as.controller.client.helpers.ClientConstants;
 import org.jboss.as.selfmonitor.model.MetricPathResolver;
 import org.jboss.as.selfmonitor.model.ModelMetric;
+import org.jboss.as.selfmonitor.model.ModelScanner;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
@@ -60,7 +61,7 @@ public class MonitorMetricJob implements Job, InterruptableJob {
             }
             if (returnVal != null){
                 Object metricValue = returnVal.get(
-                        ClientConstants.RESULT).get(metric.getName());
+                        ClientConstants.RESULT).get(metric.getNameFromId());
                 storeMetricValue(metric, metricValue.toString(), time, metricsStorage);
             }
         }
@@ -80,19 +81,23 @@ public class MonitorMetricJob implements Job, InterruptableJob {
      */
     private ModelMetric getMetricFromAttribute(String attribute){
         String[] parts = attribute.split("/");
-        String metricName = parts[parts.length-1];
-        StringBuilder builder = new StringBuilder();
+        String metricId = parts[parts.length-1];
+        StringBuilder pathBuilder = new StringBuilder();
         for(int i = 0; i < parts.length-1; i++) {
-            builder.append(parts[i]);
-            builder.append("/");
+            pathBuilder.append(parts[i]);
+            pathBuilder.append("/");
         }
-        String metricPath = builder.toString();
+        String metricPath = pathBuilder.toString();
         //remove the trailing "/"
         int pathLength = metricPath.length();
         if(pathLength > 0){
             metricPath = metricPath.substring(0, pathLength-1);
         }
-        ModelMetric m = new ModelMetric(metricName, metricPath, false, 5);
+        String[] idParts = metricId.split("_");
+        String metricName = idParts[idParts.length-1];
+        ModelScanner scanner = new ModelScanner(client);
+        ModelMetric m = scanner.getMetricFromAttribute(metricName, metricPath, 
+                metricId, false, 5);
         return m;
     }
     
@@ -106,7 +111,7 @@ public class MonitorMetricJob implements Job, InterruptableJob {
      */
     private void storeMetricValue(ModelMetric metric, 
             String value, long time, IMetricsStorage metricsStorage){
-        metricsStorage.addMetric(metric.getName(), metric.getPath(), time, value);
+        metricsStorage.addMetric(metric.getId(), metric.getPath(), time, value);
     }
     
     @Override

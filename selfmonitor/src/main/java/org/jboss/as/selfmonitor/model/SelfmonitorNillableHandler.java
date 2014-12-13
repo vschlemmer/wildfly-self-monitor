@@ -16,12 +16,12 @@ import org.jboss.msc.service.ServiceName;
  * 
  * @author Vojtech Schlemmer
  */
-public class SelfmonitorIntervalHandler extends AbstractWriteAttributeHandler<Void> {
+public class SelfmonitorNillableHandler extends AbstractWriteAttributeHandler<Void> {
 
-    public static final SelfmonitorIntervalHandler INSTANCE = new SelfmonitorIntervalHandler();
+    public static final SelfmonitorNillableHandler INSTANCE = new SelfmonitorNillableHandler();
 
-    private SelfmonitorIntervalHandler() {
-        super(MetricDefinition.INTERVAL);
+    private SelfmonitorNillableHandler() {
+        super(MetricDefinition.NILLABLE);
     }
     
     @Override
@@ -30,14 +30,14 @@ public class SelfmonitorIntervalHandler extends AbstractWriteAttributeHandler<Vo
             ModelNode resolvedValue, ModelNode currentValue, 
             HandbackHolder<Void> handbackHolder) 
             throws OperationFailedException {
-        if (attributeName.equals(SelfmonitorExtension.INTERVAL)) {
+        if (attributeName.equals(SelfmonitorExtension.NILLABLE)) {
             final String metricId = PathAddress.pathAddress(operation.get(
                     ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
             SelfmonitorService service = (SelfmonitorService) context
                     .getServiceRegistry(true)
                     .getRequiredService(ServiceName.JBOSS.append(
                             SelfmonitorService.NAME)).getValue();
-            service.changeMetricInterval(metricId, resolvedValue.asInt());
+            service.changeMetricNillable(metricId, resolvedValue.asBoolean());
             context.completeStep(
                     OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
         }

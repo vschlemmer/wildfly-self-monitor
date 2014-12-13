@@ -31,13 +31,13 @@ public class SelfmonitorPathHandler extends AbstractWriteAttributeHandler<Void> 
             HandbackHolder<Void> handbackHolder) 
             throws OperationFailedException {
         if (attributeName.equals(SelfmonitorExtension.PATH)) {
-            final String metricName = PathAddress.pathAddress(operation.get(
+            final String metricId = PathAddress.pathAddress(operation.get(
                      ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
             SelfmonitorService service = (SelfmonitorService) context
                     .getServiceRegistry(true)
                     .getRequiredService(ServiceName.JBOSS.append(
                             SelfmonitorService.NAME)).getValue();
-            service.getMetric(metricName, currentValue.asString()).setPath(
+            service.getMetric(metricId).setPath(
                     resolvedValue.asString());
             context.completeStep(
                     OperationContext.ResultHandler.NOOP_RESULT_HANDLER);

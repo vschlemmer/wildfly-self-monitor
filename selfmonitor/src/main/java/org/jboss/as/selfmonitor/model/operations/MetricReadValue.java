@@ -10,7 +10,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.selfmonitor.service.SelfmonitorService;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.dmr.ModelNode;
@@ -30,10 +29,8 @@ public class MetricReadValue implements OperationStepHandler {
     @Override
     public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
         final PathAddress address = PathAddress.pathAddress(operation.require(OP_ADDR));
-        final String metricName = address.getLastElement().getValue();
+        final String metricId = address.getLastElement().getValue();
         String stringDate = operation.get("date").asString();
-        Resource resource = context.readResourceFromRoot(address);
-        String metricPath = resource.getModel().get("path").asString();
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         Date date = null;
         String output = "";
@@ -43,7 +40,7 @@ public class MetricReadValue implements OperationStepHandler {
             output = "Problem with parsing date. Expecting format " + DATE_FORMAT;
         }
         if(output.length() == 0) {
-            String metricValue = getMetricValue(date, metricName, metricPath, context);
+            String metricValue = getMetricValue(date, metricId, context);
             output += metricValue;
         }
         ModelNode result = new ModelNode().set(output);
@@ -53,16 +50,14 @@ public class MetricReadValue implements OperationStepHandler {
         context.stepCompleted();
     }
     
-    private String getMetricValue(Date date, String metricName, 
-            String metricPath, OperationContext context){
+    private String getMetricValue(Date date, String metricId, OperationContext context){
         if(date == null){
             return "Date not specified";
         }
         IMetricsStorage storage = getStorage(context);
-        Map<Long, String> metricValues = storage.getMetricRecords(
-                metricName, metricPath);
+        Map<Long, String> metricValues = storage.getMetricRecords(metricId);
         if(metricValues.isEmpty()){
-            return "There are currently no stored values of metric " + metricName;
+            return "There are currently no stored values of metric " + metricId;
         }
         for (Map.Entry<Long, String> entry : metricValues.entrySet()){
             if(entry.getKey().longValue() == date.getTime()/1000){

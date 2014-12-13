@@ -18,11 +18,14 @@ import org.jboss.dmr.Property;
  */
 public class ModelScanner {
     
-    private Set<String> runtimeAttributes;
-    private ModelControllerClient client;
+    private final Set<String> runtimeAttributes;
+    private final ModelControllerClient client;
+    public static final org.jboss.logging.Logger log = org.jboss.logging.Logger.getLogger(ModelScanner.class);
     public static final String READ_CHILDREN_TYPES = "read-children-types";
     public static final String READ_CHILDREN_NAMES = "read-children-names";
     public static final String ATTRIBUTES_ONLY = "attributes-only";
+    public static final String ATTRIBUTES = "attributes";
+    public static final String READ_RESOURCE_DESCRIPTION = "read-resource-description";
     
     public ModelScanner(ModelControllerClient client){
         this.client = client;
@@ -191,5 +194,46 @@ public class ModelScanner {
                 runtimeAttributes.add(newAttribute);
             }
         }
+    }
+    
+    public ModelMetric getMetricFromAttribute(String metricName, 
+            String metricPath, String metricId, boolean enabled, int interval){
+        
+        ModelNode op = new ModelNode();
+        MetricPathResolver.resolvePath(metricPath, op);
+        ModelNode metricDetails = null;
+        op.get(ClientConstants.OP).set(READ_RESOURCE_DESCRIPTION);
+        op.get(ClientConstants.NAME).set(metricName);
+        try {
+            metricDetails = client.execute(op).get(ClientConstants.RESULT)
+                    .get(ATTRIBUTES).get(metricName);
+        } catch (IOException ex) {
+            Logger.getLogger(ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String metricType = "";
+        String metricDescription = "";
+        boolean metricNillable = true;
+        if(metricDetails != null){
+            if(metricDetails.get("type") != null){
+                metricType = metricDetails.get("type").asString();
+            }
+            if(metricDetails.get("description") != null){
+                metricDescription = metricDetails.get("description").asString();
+            }
+            if(metricDetails.hasDefined("nillable")){
+                metricNillable = metricDetails.get("nillable").asBoolean();
+            }
+            else{
+                if(metricDetails.hasDefined("required")){
+                    metricNillable = metricDetails.get("required").asBoolean();
+                }
+                else{
+                    log.info("Metric with name " + metricName + " and path " + metricPath + 
+                            " doesn't have defined 'nillable' nor 'required' attribute");
+                }
+            }
+        }
+        return new ModelMetric(metricId, metricPath, enabled, interval, 
+                metricType, metricDescription, metricNillable);
     }
 }

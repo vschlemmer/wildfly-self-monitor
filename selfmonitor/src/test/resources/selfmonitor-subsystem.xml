@@ -1,13 +1,6 @@
 <subsystem xmlns="urn:org.jboss.as.selfmonitor:1.0">
     <metrics>
-        <metric name="number-of-aborted-transactions" path="/subsystem=transactions" enabled="true" interval="5"/>
+        <metric name="number-of-aborted-transactions" path="/subsystem=transactions" enabled="true" interval="5" />
         <metric name="number-of-application-rollbacks" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-committed-transactions" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-heuristics" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-inflight-transactions" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-nested-transactions" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-resource-rollbacks" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-timed-out-transactions" path="/subsystem=transactions" enabled="true" interval="5"/>
-        <metric name="number-of-transactions" path="/subsystem=transactions" enabled="true" interval="5"/>
     </metrics>
 </subsystem>

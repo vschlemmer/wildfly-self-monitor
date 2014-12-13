@@ -13,7 +13,6 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;
 import org.jboss.as.controller.PathAddress;
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.selfmonitor.service.SelfmonitorService;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.dmr.ModelNode;
@@ -33,13 +32,11 @@ public class MetricReadValues implements OperationStepHandler {
     @Override
     public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
         final PathAddress address = PathAddress.pathAddress(operation.require(OP_ADDR));
-        final String metricName = address.getLastElement().getValue();
+        final String metricId = address.getLastElement().getValue();
         String stringDateFrom = operation.get("date-from").asString();
         String stringDateTo = operation.get("date-to").asString();
         String stringFunctionType = operation.get("function-type").asString();
         FunctionType functionType = FunctionType.forKey(stringFunctionType);
-        Resource resource = context.readResourceFromRoot(address);
-        String metricPath = resource.getModel().get("path").asString();
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         Date dateFrom = null;
         Date dateTo = null;
@@ -51,8 +48,8 @@ public class MetricReadValues implements OperationStepHandler {
             output = "Problem with parsing date. Expecting format " + DATE_FORMAT;
         }
         if(output.length() == 0) {
-            String metricValue = getMetricValue(dateFrom, dateTo, functionType, metricName, 
-                    metricPath, context);
+            String metricValue = getMetricValue(dateFrom, dateTo, functionType, 
+                    metricId, context);
             output += metricValue;
         }
         ModelNode result = new ModelNode().set(output);
@@ -63,7 +60,7 @@ public class MetricReadValues implements OperationStepHandler {
     }
     
     private String getMetricValue(Date dateFrom, Date dateTo, FunctionType functionType,
-            String metricName, String metricPath, OperationContext context){
+            String metricId, OperationContext context){
         if(functionType == null){
             String returnMessage = "function-type must be one of the following: ";
             for(FunctionType ft : FunctionType.getAllValues()){
@@ -73,10 +70,9 @@ public class MetricReadValues implements OperationStepHandler {
             return returnMessage;
         }
         IMetricsStorage storage = getStorage(context);
-        Map<Long, String> metricValues = storage.getMetricRecords(
-                metricName, metricPath);
+        Map<Long, String> metricValues = storage.getMetricRecords(metricId);
         if(metricValues.isEmpty()){
-            return "There are currently no stored values of metric " + metricName;
+            return "There are currently no stored values of metric " + metricId;
         }
         switch(FunctionType.find(functionType.getId())){
             case AVG:
@@ -91,10 +87,11 @@ public class MetricReadValues implements OperationStepHandler {
                 return "No results";
         }
     }
-
+    
     private String getMetricAverageValue(Map<Long, String> metricValues, 
             Date dateFrom, Date dateTo){
         long accumulator = 0;
+        int counter = 0;
         for (Map.Entry<Long, String> entry : metricValues.entrySet()){
             if(entry.getKey().longValue() >= dateFrom.getTime()/1000 &&
                entry.getKey().longValue() <= dateTo.getTime()/1000){
@@ -102,10 +99,20 @@ public class MetricReadValues implements OperationStepHandler {
                 if(value.length() > 0 && value.charAt(value.length()-1)=='L') {
                     value = value.substring(0, value.length()-1);
                 }
-                accumulator += Long.parseLong(value);
+                long addedValue = 0;
+                try{
+                    addedValue = Long.parseLong(value, 10); 
+                }catch(NumberFormatException e){
+                    return "Cannot execute this type of operation upon non-numeric attributes";
+                }
+                accumulator += addedValue;
+                counter++;
             }
         }
-        Long averageValue = new Long(accumulator/metricValues.size());
+        if(counter == 0){
+            return "No values found between selected dates";
+        }
+        Long averageValue = new Long(accumulator/counter);
         return averageValue.toString();
     }
     

@@ -12,31 +12,29 @@ import java.util.TreeMap;
  */
 public class MetricsMemoryStorage implements IMetricsStorage {
 
-    private Map<String, Map<Long, String>> metrics;
+    private Map<String, Map<Long, String>> metricRecords;
 
     public MetricsMemoryStorage(){
-        metrics = new HashMap<>();
-        metrics = Collections.synchronizedMap(metrics);
+        metricRecords = new HashMap<>();
+        metricRecords = Collections.synchronizedMap(metricRecords);
     }
     
     public Map<String, Map<Long, String>> getMetrics() {
-        return metrics;
+        return metricRecords;
     }
 
-    public void setMetrics(Map<String, Map<Long, String>> metrics) {
-        this.metrics = metrics;
+    public void setMetrics(Map<String, Map<Long, String>> metricRecords) {
+        this.metricRecords = metricRecords;
     }
     
     @Override
-    public void addMetric(String metricName, String metricPath, long time, String value) {
-        String metricId = getMetricId(metricName, metricPath);
+    public void addMetric(String metricId, String metricPath, long time, String value) {
         addMetricRecord(metricId, time, value);
     }
     
     @Override
-    public Map<Long, String> getMetricRecords(String metricName, String metricPath){
-        String metricId = getMetricId(metricName, metricPath);
-        return this.metrics.get(metricId);
+    public Map<Long, String> getMetricRecords(String metricId){
+        return this.metricRecords.get(metricId);
     }
     
     /**
@@ -48,25 +46,13 @@ public class MetricsMemoryStorage implements IMetricsStorage {
      * @param value  value of the metric
      */
     private void addMetricRecord(String metricId, long time, String value){
-        if (this.metrics.containsKey(metricId)){
-            this.metrics.get(metricId).put(new Long(time), value);
+        if (this.metricRecords.containsKey(metricId)){
+            this.metricRecords.get(metricId).put(new Long(time), value);
         }
         else{
             Map<Long, String> newRecord = new TreeMap<>();
             newRecord.put(new Long(time), value);
-            this.metrics.put(metricId, newRecord);
+            this.metricRecords.put(metricId, newRecord);
         }
     }
-    
-    /**
-     * Retrieve metric id by simply concatenating its path and name
-     * 
-     * @param metricName metric name
-     * @param metricPath metric path
-     * @return id of the metric
-     */
-    private String getMetricId(String metricName, String metricPath){
-        return metricPath + metricName;
-    }
-    
 }

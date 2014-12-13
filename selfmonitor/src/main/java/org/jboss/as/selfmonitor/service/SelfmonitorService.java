@@ -1,5 +1,6 @@
 package org.jboss.as.selfmonitor.service;
 
+import java.io.File;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -22,6 +23,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.quartz.Scheduler;
+import util.XMLMetricParser;
 
 /**
  * Class with selfmonitor service providing the basic functionalities related
@@ -83,8 +85,10 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
                         int numberOfJobs = initMetricsStoreJobs();
                         log.info("Number of metrics monitored: " + numberOfJobs);
                         initialized = true;
+                        File jonFile = new File("/data/fi/dp/jon-metrics.xml");
+                        XMLMetricParser.parse(jonFile, metrics);
                     }
-                    Thread.sleep(10000);
+                    Thread.sleep(5000);
                     for(ModelMetric metric : metrics){
                         if(metric.isEnabled()){
                             MonitorMetricJobHandler.logStoredMetric(log, metric, metricsStorage);
@@ -115,7 +119,7 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
         Scheduler scheduler = MonitorMetricJobHandler.initSingleMetricJob(
                 metric, client, metricsStorage);
         if(scheduler != null){
-            jobs.put(metric.getName(), scheduler);
+            jobs.put(metric.getId(), scheduler);
         }
     }
     
@@ -132,15 +136,23 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
     private int modelScanAttributes(ModelScanner scanner, ModelWriter writer){
         log.info("Scanning the whole model for metrics, please wait...");
         attributes = scanner.getModelRuntimeAttributes();
+        int counter = 0;
         for(String attribute : attributes){
-            ModelMetric m = getMetricFromAttribute(attribute);
-            writer.addMetricToModelIfNotPresent(m);
-            if(!metrics.contains(m)){
-                metrics.add(m);
-            }
+//            if(attribute.equals("server-state")){
+                ModelMetric m = getMetricFromAttribute(attribute, scanner);
+//                System.out.println(m);
+                writer.addMetricToModelIfNotPresent(m);
+                if(!metrics.contains(m)){
+                    metrics.add(m);
+                }
+//                if(counter > 3){
+//                    break;
+//                }
+//                counter++;
+//            }
         }
         log.info("Added " + metrics.size() + " metrics");
-        return attributes.size();
+        return metrics.size();
     }
     
     /**
@@ -152,21 +164,35 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
      * @return ModelMetric instance of a given attribute with "enabled" 
      * property set to false
      */
-    private ModelMetric getMetricFromAttribute(String attribute){
+    private ModelMetric getMetricFromAttribute(String attribute, ModelScanner scanner){
         String[] parts = attribute.split("/");
         String metricName = parts[parts.length-1];
-        StringBuilder builder = new StringBuilder();
+        StringBuilder pathBuilder = new StringBuilder();
+        StringBuilder idBuilder = new StringBuilder();
         for(int i = 0; i < parts.length-1; i++) {
-            builder.append(parts[i]);
-            builder.append("/");
+            String[] innerParts = parts[i].split("=");
+            for (String innerPart : innerParts) {
+                idBuilder.append(innerPart);
+                idBuilder.append("_");
+            }
+            pathBuilder.append(parts[i]);
+            pathBuilder.append("/");
         }
-        String metricPath = builder.toString();
+        String metricPath = pathBuilder.toString();
+        String metricId = idBuilder.toString();
+        //remove the first "_" from metric id
+        int idLength = metricId.length();
+        if(idLength > 0){
+            metricId = metricId.substring(1, idLength);
+        }
+        metricId += metricName;
         //remove the trailing "/"
         int pathLength = metricPath.length();
         if(pathLength > 0){
             metricPath = metricPath.substring(0, pathLength-1);
         }
-        ModelMetric m = new ModelMetric(metricName, metricPath, false, 5);
+        ModelMetric m = scanner.getMetricFromAttribute(metricName, metricPath, 
+                metricId, false, 5);
         return m;
     }
     
@@ -206,8 +232,8 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
         metrics.remove(metric);
     }
     
-    public void changeMetricEnabled(String metricName, String metricPath, boolean enabled){
-        ModelMetric m = getMetric(metricName, metricPath);
+    public void changeMetricEnabled(String metricId, boolean enabled){
+        ModelMetric m = getMetric(metricId);
         m.setEnabled(enabled);
         if(initialized){
             jobs = MonitorMetricJobHandler.changeMetricEnabled(m, jobs, 
@@ -215,10 +241,37 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
         }
     }
     
-    public void changeMetricInterval(String metricName, String metricPath, int interval){
-        ModelMetric m = getMetric(metricName, metricPath);
+    public void changeMetricNillable(String metricId, boolean nillable){
+        ModelMetric m = getMetric(metricId);
+        m.setNillable(nillable);
+//        if(initialized){
+//            jobs = MonitorMetricJobHandler.changeMetricEnabled(m, jobs, 
+//                    client, metricsStorage);
+//        }
+    }
+    
+    public void changeMetricType(String metricId, String type){
+        ModelMetric m = getMetric(metricId);
+        m.setType(type);
+//        if(initialized){
+//            jobs = MonitorMetricJobHandler.changeMetricType(m, jobs, 
+//                    client, metricsStorage);
+//        }
+    }
+    
+    public void changeMetricDescription(String metricId, String description){
+        ModelMetric m = getMetric(metricId);
+        m.setDescription(description);
+//        if(initialized){
+//            jobs = MonitorMetricJobHandler.changeMetricDescription(m, jobs, 
+//                    client, metricsStorage);
+//        }
+    }
+    
+    public void changeMetricInterval(String metricId, int interval){
+        ModelMetric m = getMetric(metricId);
         m.setInterval(interval);
-        if(initialized && m.isEnabled() && jobs.containsKey(metricName)){
+        if(initialized && m.isEnabled() && jobs.containsKey(metricId)){
             MonitorMetricJobHandler.changeJobInterval(jobs, m);
         }
     }
@@ -226,14 +279,12 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
     /**
      * Retrieves a metric from "metrics" property according to its name and path
      * 
-     * @param metricName name of the metric
-     * @param metricPath path of the metric
+     * @param metricId id of the metric
      * @return metric found or null
      */
-    public ModelMetric getMetric(String metricName, String metricPath){
+    public ModelMetric getMetric(String metricId){
         for(ModelMetric metricIter : metrics){
-            if (metricIter.getName().equals(metricName) &&
-                metricIter.getPath().equals(metricPath)){
+            if (metricIter.getId().equals(metricId)){
                 return metricIter;
             }
         }

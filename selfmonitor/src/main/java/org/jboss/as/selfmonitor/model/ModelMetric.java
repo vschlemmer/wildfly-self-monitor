@@ -10,16 +10,47 @@ import java.util.Objects;
  */
 public class ModelMetric {
 
-    private String name;
+    private String id;
     private String path;
     private boolean enabled;
     private int interval;
+    private String type;
+    private String description;
+    private boolean nillable;
 
-    public ModelMetric(String name, String path, boolean enabled, int interval) {
-        this.name = name;
+    public ModelMetric(String id, String path, boolean enabled, int interval, 
+            String type, String description, boolean nillable) {
+        this.id = id;
         this.path = path;
         this.enabled = enabled;
         this.interval = interval;
+        this.type = type;
+        this.description = description;
+        this.nillable = nillable;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public boolean isNillable() {
+        return nillable;
+    }
+
+    public void setNillable(boolean nillable) {
+        this.nillable = nillable;
     }
 
     public int getInterval() {
@@ -38,12 +69,12 @@ public class ModelMetric {
         this.enabled = enabled;
     }
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getPath() {
@@ -53,12 +84,16 @@ public class ModelMetric {
     public void setPath(String path) {
         this.path = path;
     }
+    
+    public String getNameFromId(){
+        String[] parts = this.id.split("_");
+        return parts[parts.length-1];
+    }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 37 * hash + Objects.hashCode(this.name);
-        hash = 37 * hash + Objects.hashCode(this.path);
+        hash = 79 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -67,15 +102,21 @@ public class ModelMetric {
         if (obj == null) {
             return false;
         }
-        final ModelMetric other = (ModelMetric) obj;
-        if (!Objects.equals(this.name, other.name)) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-        if (!Objects.equals(this.path, other.path)) {
+        final ModelMetric other = (ModelMetric) obj;
+        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "ModelMetric{" + "id=" + id + ", path=" + path + ", enabled=" + enabled + ", interval=" + interval + ", type=" + type + ", description=" + description + ", nillable=" + nillable + '}';
+    }
+
     
     
 }

@@ -11,6 +11,9 @@ import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 import static org.jboss.as.selfmonitor.MetricDefinition.PATH;
 import static org.jboss.as.selfmonitor.MetricDefinition.ENABLED;
 import static org.jboss.as.selfmonitor.MetricDefinition.INTERVAL;
+import static org.jboss.as.selfmonitor.MetricDefinition.TYPE;
+import static org.jboss.as.selfmonitor.MetricDefinition.DESCRIPTION;
+import static org.jboss.as.selfmonitor.MetricDefinition.NILLABLE;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceController;
@@ -30,6 +33,9 @@ public class MetricAdd extends AbstractAddStepHandler {
         PATH.validateAndSet(operation, model);
         ENABLED.validateAndSet(operation, model);
         INTERVAL.validateAndSet(operation, model);
+        TYPE.validateAndSet(operation, model);
+        DESCRIPTION.validateAndSet(operation, model);
+        NILLABLE.validateAndSet(operation, model);
     }
     
     @Override
@@ -39,15 +45,18 @@ public class MetricAdd extends AbstractAddStepHandler {
         SelfmonitorService service = getSelfmonitorService(
                 context.getServiceRegistry(true), 
                 SelfmonitorService.NAME);
-        String metricName = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+        String metricId = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
         String metricPath = PATH.resolveModelAttribute(context,model).asString();
         boolean enabled = ENABLED.resolveModelAttribute(context,model).asBoolean();
         int interval = INTERVAL.resolveModelAttribute(context,model).asInt();
-        ModelMetric metricInService = service.getMetric(metricName, metricPath);
+        String type = TYPE.resolveModelAttribute(context,model).asString();
+        String description = DESCRIPTION.resolveModelAttribute(context,model).asString();
+        boolean nillable = NILLABLE.resolveModelAttribute(context,model).asBoolean();
+        ModelMetric metricInService = service.getMetric(metricId);
         if(metricInService != null){
             service.removeMetric(metricInService);
         }
-        ModelMetric metric = new ModelMetric(metricName, metricPath, enabled, interval);
+        ModelMetric metric = new ModelMetric(metricId, metricPath, enabled, interval, type, description, nillable);
         service.addMetric(metric);
     }
     

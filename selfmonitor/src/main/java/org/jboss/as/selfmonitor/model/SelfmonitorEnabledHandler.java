@@ -31,17 +31,13 @@ public class SelfmonitorEnabledHandler extends AbstractWriteAttributeHandler<Voi
             HandbackHolder<Void> handbackHolder) 
             throws OperationFailedException {
         if (attributeName.equals(SelfmonitorExtension.ENABLED)) {
-            ModelNode submodel = context.readResource(
-                    PathAddress.EMPTY_ADDRESS).getModel();
-            final String metricName = PathAddress.pathAddress(operation.get(
+            final String metricId = PathAddress.pathAddress(operation.get(
                     ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
-            final String metricPath = submodel.get(
-                    SelfmonitorExtension.PATH).asString();
             SelfmonitorService service = (SelfmonitorService) context
                     .getServiceRegistry(true)
                     .getRequiredService(ServiceName.JBOSS.append(
                             SelfmonitorService.NAME)).getValue();
-            service.changeMetricEnabled(metricName, metricPath, resolvedValue.asBoolean());
+            service.changeMetricEnabled(metricId, resolvedValue.asBoolean());
             context.completeStep(
                     OperationContext.ResultHandler.NOOP_RESULT_HANDLER);
         }

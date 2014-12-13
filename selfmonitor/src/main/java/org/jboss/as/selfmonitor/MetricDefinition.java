@@ -10,9 +10,12 @@ import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 import static org.jboss.as.selfmonitor.SelfmonitorExtension.METRIC;
 import static org.jboss.as.selfmonitor.SelfmonitorExtension.METRIC_PATH;
+import org.jboss.as.selfmonitor.model.SelfmonitorDescriptionHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorEnabledHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorIntervalHandler;
+import org.jboss.as.selfmonitor.model.SelfmonitorNillableHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorPathHandler;
+import org.jboss.as.selfmonitor.model.SelfmonitorTypeHandler;
 import org.jboss.as.selfmonitor.model.operations.MetricReadValue;
 import org.jboss.as.selfmonitor.model.operations.MetricValueOccurred;
 import org.jboss.dmr.ModelType;
@@ -40,7 +43,7 @@ public class MetricDefinition extends SimpleResourceDefinition {
       .setAllowExpression(true)
       .setXmlName(SelfmonitorExtension.PATH)
       .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
-      .setAllowNull(false)
+      .setAllowNull(true)
       .build();
     
     public static final SimpleAttributeDefinition ENABLED =
@@ -57,6 +60,30 @@ public class MetricDefinition extends SimpleResourceDefinition {
       .setXmlName(SelfmonitorExtension.INTERVAL)
       .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
       .setAllowNull(false)
+      .build();
+    
+    public static final SimpleAttributeDefinition TYPE =
+    new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.TYPE, ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName(SelfmonitorExtension.TYPE)
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(true)
+      .build();
+    
+    public static final SimpleAttributeDefinition DESCRIPTION =
+    new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.DESCRIPTION, ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName(SelfmonitorExtension.DESCRIPTION)
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(true)
+      .build();
+    
+    public static final SimpleAttributeDefinition NILLABLE =
+    new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.NILLABLE, ModelType.BOOLEAN)
+      .setAllowExpression(true)
+      .setXmlName(SelfmonitorExtension.NILLABLE)
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(true)
       .build();
     
     //operations' parameters
@@ -140,5 +167,8 @@ public class MetricDefinition extends SimpleResourceDefinition {
        resourceRegistration.registerReadWriteAttribute(PATH, null, SelfmonitorPathHandler.INSTANCE);
        resourceRegistration.registerReadWriteAttribute(ENABLED, null, SelfmonitorEnabledHandler.INSTANCE);
        resourceRegistration.registerReadWriteAttribute(INTERVAL, null, SelfmonitorIntervalHandler.INSTANCE);
+       resourceRegistration.registerReadWriteAttribute(TYPE, null, SelfmonitorTypeHandler.INSTANCE);
+       resourceRegistration.registerReadWriteAttribute(DESCRIPTION, null, SelfmonitorDescriptionHandler.INSTANCE);
+       resourceRegistration.registerReadWriteAttribute(NILLABLE, null, SelfmonitorNillableHandler.INSTANCE);
     }
 }

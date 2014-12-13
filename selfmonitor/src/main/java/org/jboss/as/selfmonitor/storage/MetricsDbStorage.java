@@ -33,21 +33,20 @@ public class MetricsDbStorage implements IMetricsStorage {
      * @return EntityManagerFactory for a given persistence unit
      */
     private EntityManagerFactory createEntityManagerFactory(String persistenceUnit){	
+        EntityManagerFactory entmf = null;
         ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-            return Persistence.createEntityManagerFactory(persistenceUnit);
+            entmf = Persistence.createEntityManagerFactory(persistenceUnit);
         } finally {
             Thread.currentThread().setContextClassLoader(originalClassLoader);
         }
+        return entmf;
     }
 
     @Override
-    public void addMetric(String metricName, String metricPath, long time, String value) {
-        Metric metric = new Metric(metricName, metricPath, time, (String) value);
-//        log.info("------------------------------");
-//        log.info("metricName: " + metricName);
-//        log.info("time: " + time);
+    public void addMetric(String metricId, String metricPath, long time, String value) {
+        Metric metric = new Metric(metricId, metricPath, time, (String) value);
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();
         entityManager.persist(metric);
@@ -56,9 +55,9 @@ public class MetricsDbStorage implements IMetricsStorage {
     }
 
     @Override
-    public Map<Long, String> getMetricRecords(String metricName, String metricPath) {
+    public Map<Long, String> getMetricRecords(String metricId) {
         Map<Long, String> metricRecords = new HashMap<>();
-        for (Metric m : retrieveMetricRecords(metricName, metricPath)){
+        for (Metric m : retrieveMetricRecords(metricId)){
             metricRecords.put(new Long(m.getTime()), m.getValue());
         }
         return metricRecords;
@@ -70,9 +69,9 @@ public class MetricsDbStorage implements IMetricsStorage {
      * @param metricPath path of the metric
      * @return list of retrieved metrics
      */
-    private List<Metric> retrieveMetricRecords(String metricName, String metricPath){
+    private List<Metric> retrieveMetricRecords(String metricId){
         String queryString = "SELECT m FROM Metric m WHERE m.name = '" +
-                metricName + "' AND m.path = '" + metricPath + "'";
+                metricId + "'";
         EntityManager entityManager = emf.createEntityManager();
         Query q = entityManager.createQuery(queryString, Metric.class);
         List<Metric> metrics = q.getResultList();

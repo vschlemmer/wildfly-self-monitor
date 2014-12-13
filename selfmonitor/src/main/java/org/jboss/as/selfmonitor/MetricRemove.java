@@ -6,7 +6,6 @@ import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
-import static org.jboss.as.selfmonitor.MetricDefinition.PATH;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import org.jboss.dmr.ModelNode;
 import org.jboss.logging.Logger;
@@ -30,15 +29,14 @@ public class MetricRemove extends AbstractRemoveStepHandler {
         SelfmonitorService service = getSelfmonitorService(
                 context.getServiceRegistry(true), 
                 SelfmonitorService.NAME);
-        String metricName = PathAddress.pathAddress(operation.get(
+        String metricId = PathAddress.pathAddress(operation.get(
                 ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
-        String metricPath = PATH.resolveModelAttribute(context,model).asString();
-        ModelMetric metricToRemove = service.getMetric(metricName, metricPath);
+        ModelMetric metricToRemove = service.getMetric(metricId);
         if (metricToRemove != null){
             service.removeMetric(metricToRemove);
         }
         else{
-            log.info("Metric '" + metricName + "' could not be found among metrics.");
+            log.info("Metric '" + metricId + "' could not be found among metrics.");
         }
     }
     

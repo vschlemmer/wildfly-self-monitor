@@ -61,6 +61,9 @@ public class SelfmonitorExtension implements Extension {
     public static final String PATH = "path";
     public static final String ENABLED = "enabled";
     public static final String INTERVAL = "interval";
+    public static final String TYPE = "metric-type";
+    public static final String DESCRIPTION = "metric-description";
+    public static final String NILLABLE = "nillable";
     protected static final String METRIC = "metric";
     protected static final String METRICS = "metrics";
     protected static final String METRIC_NAME = "name";
@@ -125,6 +128,9 @@ public class SelfmonitorExtension implements Extension {
                 MetricDefinition.PATH.marshallAsAttribute(entry, true, writer);
                 MetricDefinition.ENABLED.marshallAsAttribute(entry, true, writer);
                 MetricDefinition.INTERVAL.marshallAsAttribute(entry, true, writer);
+                MetricDefinition.TYPE.marshallAsAttribute(entry, true, writer);
+                MetricDefinition.DESCRIPTION.marshallAsAttribute(entry, true, writer);
+                MetricDefinition.NILLABLE.marshallAsAttribute(entry, true, writer);
                 writer.writeEndElement();
             }
             //End metrics
@@ -181,6 +187,12 @@ public class SelfmonitorExtension implements Extension {
                     MetricDefinition.ENABLED.parseAndSetParameter(value, addMetricOperation, reader);
                 } else if (attr.equals(INTERVAL)) {
                     MetricDefinition.INTERVAL.parseAndSetParameter(value, addMetricOperation, reader);
+                } else if (attr.equals(TYPE)) {
+                    MetricDefinition.TYPE.parseAndSetParameter(value, addMetricOperation, reader);
+                } else if (attr.equals(DESCRIPTION)) {
+                    MetricDefinition.DESCRIPTION.parseAndSetParameter(value, addMetricOperation, reader);
+                } else if (attr.equals(NILLABLE)) {
+                    MetricDefinition.NILLABLE.parseAndSetParameter(value, addMetricOperation, reader);
                 } else {
                     throw ParseUtils.unexpectedAttribute(reader, i);
                 }

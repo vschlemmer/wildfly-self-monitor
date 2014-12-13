@@ -27,14 +27,14 @@ import org.quartz.impl.StdSchedulerFactory;
 public class MonitorMetricJobHandler {
 
     public static void changeJobInterval(Map<String, Scheduler> jobs, ModelMetric m){
-        Scheduler scheduler = jobs.get(m.getName());
+        Scheduler scheduler = jobs.get(m.getId());
         Trigger oldTrigger = getMetricTrigger(m, scheduler);
         TriggerBuilder tb = null;
         if(oldTrigger != null){
             tb = oldTrigger.getTriggerBuilder();
         }
         else{
-            Logger.getLogger(MonitorMetricJobHandler.class).info("oldTrigger of metric " + m.getName() + " not found");
+            Logger.getLogger(MonitorMetricJobHandler.class).info("oldTrigger of metric " + m.getId() + " not found");
         }
         Trigger newTrigger = null;
         if(tb != null){
@@ -46,7 +46,7 @@ public class MonitorMetricJobHandler {
                     .build();
         }
         else{
-            Logger.getLogger(MonitorMetricJobHandler.class).info("Trigger builder of metric " + m.getName() + " not found");
+            Logger.getLogger(MonitorMetricJobHandler.class).info("Trigger builder of metric " + m.getId() + " not found");
         }
         rescheduleJob(oldTrigger, newTrigger, m, scheduler);
     }
@@ -55,7 +55,7 @@ public class MonitorMetricJobHandler {
         Trigger trigger = null;
         try {
             trigger = scheduler.getTrigger(TriggerKey.triggerKey(
-                    "trigger" + m.getName(), "group" + m.getName()));
+                    "trigger" + m.getId(), "group" + m.getId()));
         } catch (SchedulerException ex) {
             java.util.logging.Logger.getLogger(SelfmonitorService.class
                     .getName()).log(Level.SEVERE, null, ex);
@@ -67,12 +67,12 @@ public class MonitorMetricJobHandler {
             ModelMetric m, Scheduler scheduler){
         try {
             if(oldTrigger != null){
-                scheduler.interrupt(JobKey.jobKey("job" + m.getName(), 
-                        "group" + m.getName()));
+                scheduler.interrupt(JobKey.jobKey("job" + m.getId(), 
+                        "group" + m.getId()));
                 
                 scheduler.rescheduleJob(oldTrigger.getKey(), newTrigger);
-                scheduler.resumeJob(JobKey.jobKey("job" + m.getName(), 
-                        "group" + m.getName()));
+                scheduler.resumeJob(JobKey.jobKey("job" + m.getId(), 
+                        "group" + m.getId()));
             }
         } catch (SchedulerException ex) {
             java.util.logging.Logger.getLogger(SelfmonitorService.class
@@ -84,14 +84,14 @@ public class MonitorMetricJobHandler {
             ModelControllerClient client, IMetricsStorage metricsStorage){
         Trigger trigger = TriggerBuilder
             .newTrigger()
-            .withIdentity("trigger" + metric.getName(), "group" + metric.getName())
+            .withIdentity("trigger" + metric.getId(), "group" + metric.getId())
             .withSchedule(
                 SimpleScheduleBuilder.simpleSchedule()
                 .withIntervalInSeconds(metric.getInterval()).repeatForever())
             .build();
         JobDetail job = JobBuilder.newJob(MonitorMetricJob.class)
-            .withIdentity("job" + metric.getName(), "group" + metric.getName())
-            .usingJobData("metricId", metric.getPath() + "/" + metric.getName())
+            .withIdentity("job" + metric.getId(), "group" + metric.getId())
+            .usingJobData("metricId", metric.getPath() + "/" + metric.getId())
             .build();
         Scheduler scheduler = null;
         try {
@@ -110,21 +110,21 @@ public class MonitorMetricJobHandler {
             ModelMetric m, Map<String, Scheduler> jobs, 
             ModelControllerClient client, IMetricsStorage metricsStorage){
         if(m.isEnabled()){
-            if(!jobs.containsKey(m.getName())){
+            if(!jobs.containsKey(m.getId())){
                 Scheduler scheduler = initSingleMetricJob(m, client, metricsStorage);
-                jobs.put(m.getName(), scheduler);
+                jobs.put(m.getId(), scheduler);
             }
         }
         else{
-            if(jobs.containsKey(m.getName())){
+            if(jobs.containsKey(m.getId())){
                 try {
-                    jobs.get(m.getName()).deleteJob(JobKey.jobKey(
-                            "job" + m.getName(), "group" + m.getName()));
+                    jobs.get(m.getId()).deleteJob(JobKey.jobKey(
+                            "job" + m.getId(), "group" + m.getId()));
                 } catch (SchedulerException ex) {
                     java.util.logging.Logger.getLogger(SelfmonitorService.class
                             .getName()).log(Level.SEVERE, null, ex);
                 }
-                jobs.remove(m.getName());
+                jobs.remove(m.getId());
             }
         }
         return jobs;
@@ -140,16 +140,20 @@ public class MonitorMetricJobHandler {
     public static void logStoredMetric(Logger log, ModelMetric metric, IMetricsStorage metricsStorage){
         SimpleDateFormat printFormat = new SimpleDateFormat("HH:mm:ss");
         log.info("==================================");
-        log.info(metric.getName());
+        log.info(metric.getId());
         log.info("==================================");
         log.info("Date and time     | value");
         log.info("----------------------------------");
-        Map<Long, String> metricData = metricsStorage.getMetricRecords(
-                metric.getName(), metric.getPath());
-        Map<Long, String> sortedMetricData = new TreeMap<>(metricData);
-        for (Map.Entry<Long, String> entry : sortedMetricData.entrySet()){
-            log.info(printFormat.format(new Date(entry.getKey().longValue() * 1000)) + 
-                    "          |  " + entry.getValue());
+        Map<Long, String> metricData = metricsStorage.getMetricRecords(metric.getId());
+        if(!metricData.isEmpty()){
+            Map<Long, String> sortedMetricData = new TreeMap<>(metricData);
+            for (Map.Entry<Long, String> entry : sortedMetricData.entrySet()){
+                log.info(printFormat.format(new Date(entry.getKey().longValue() * 1000)) + 
+                        "          |  " + entry.getValue());
+            }
+        }
+        else{
+            log.info("No values found");
         }
     }
 }
