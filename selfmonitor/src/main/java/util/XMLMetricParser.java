@@ -25,11 +25,11 @@ public class XMLMetricParser {
         SAXParserFactory spf = SAXParserFactory.newInstance();
         SAXParser sp = null;
         try {
-            log.info("Parsing JON XML file...");
+//            log.info("Parsing JON XML file...");
             sp = spf.newSAXParser();
             XMLMetricHandler handler = new XMLMetricHandler();
             sp.parse(file, handler);
-            log.info("Found " + handler.getMetricCount() + " metric elements.");
+//            log.info("Found " + handler.getMetricCount() + " metric elements.");
             Map<String, String> metricDataTypes = handler.getMetricDataTypes();
             pairWithExistingMetrics(metrics, metricDataTypes);
         } catch (ParserConfigurationException | SAXException | IOException ex) {
@@ -46,10 +46,10 @@ public class XMLMetricParser {
             String metricName = metric.getNameFromId();
             if(metricDataTypes.containsKey(metricName)){
                 String dataType = metricDataTypes.get(metricName);
-                log.info("metricName: " + metricName);
-                log.info("metricPath: " + metric.getPath());
-                log.info("dataType: " + dataType);
-                log.info("-------------------------------");
+//                log.info("metricName: " + metricName);
+//                log.info("metricPath: " + metric.getPath());
+//                log.info("dataType: " + dataType);
+//                log.info("-------------------------------");
                 pairedCounter++;
             }
         }
