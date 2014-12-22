@@ -27,6 +27,9 @@ public class ReadMetrics implements OperationStepHandler {
                 m.get("id").set(metric.getId());
                 m.get("path").set(metric.getPath());
                 m.get("interval").set(metric.getInterval());
+                m.get("type").set(metric.getType());
+                m.get("description").set(metric.getDescription());
+                m.get("nillable").set(metric.isNillable());
                 metrics.add(m);
             }
         }
