@@ -16,6 +16,7 @@ import org.jboss.as.selfmonitor.model.SelfmonitorIntervalHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorNillableHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorPathHandler;
 import org.jboss.as.selfmonitor.model.SelfmonitorTypeHandler;
+import org.jboss.as.selfmonitor.model.operations.MetricReadAllValues;
 import org.jboss.as.selfmonitor.model.operations.MetricReadValue;
 import org.jboss.as.selfmonitor.model.operations.MetricValueOccurred;
 import org.jboss.dmr.ModelType;
@@ -29,6 +30,8 @@ public class MetricDefinition extends SimpleResourceDefinition {
     public static final String READ_VALUES_STRING = "read-values";
     public static final String READ_VALUE_STRING = "read-value";
     public static final String VALUE_OCCURRED_STRING = "value-occurred";
+    public static final String READ_ALL_VALUES_STRING = "read-all-values";
+    
     
     private MetricDefinition(){
        super(METRIC_PATH, 
@@ -154,12 +157,19 @@ public class MetricDefinition extends SimpleResourceDefinition {
             .addParameter(VALUE)
             .build();
     
+    static final OperationDefinition READ_ALL_VALUES = new SimpleOperationDefinitionBuilder(
+            READ_ALL_VALUES_STRING, SelfmonitorExtension.getResourceDescriptionResolver(
+                    "metric"))
+            .setRuntimeOnly()
+            .build();
+    
     @Override
     public void registerOperations(ManagementResourceRegistration resourceRegistration) {
         super.registerOperations(resourceRegistration);
         resourceRegistration.registerOperationHandler(MetricDefinition.READ_VALUES, new MetricReadValues());
         resourceRegistration.registerOperationHandler(MetricDefinition.READ_VALUE, new MetricReadValue());
         resourceRegistration.registerOperationHandler(MetricDefinition.VALUE_OCCURRED, new MetricValueOccurred());
+        resourceRegistration.registerOperationHandler(MetricDefinition.READ_ALL_VALUES, new MetricReadAllValues());
     }
     
     @Override

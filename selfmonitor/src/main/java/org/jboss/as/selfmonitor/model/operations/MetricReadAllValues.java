@@ -25,7 +25,7 @@ import org.jboss.msc.service.ServiceName;
  */
 
 
-public class MetricReadValues implements OperationStepHandler {
+public class MetricReadAllValues implements OperationStepHandler {
 
     protected final String DATE_FORMAT = "yyyy-MM-dd.HH:mm:ss";
     
@@ -33,147 +33,23 @@ public class MetricReadValues implements OperationStepHandler {
     public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {
         final PathAddress address = PathAddress.pathAddress(operation.require(OP_ADDR));
         final String metricId = address.getLastElement().getValue();
-        String stringDateFrom = operation.get("date-from").asString();
-        String stringDateTo = operation.get("date-to").asString();
-        String stringFunctionType = operation.get("function-type").asString();
-        FunctionType functionType = FunctionType.forKey(stringFunctionType);
+        ModelNode result = new ModelNode();
+        Map<Long, String> metricValues = getMetricValues(metricId, context);
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        Date dateFrom = null;
-        Date dateTo = null;
-        String output = "";
-        try {
-            dateFrom = dateFormat.parse(stringDateFrom);
-            dateTo = dateFormat.parse(stringDateTo);
-        } catch (ParseException ex) {
-            output = "Problem with parsing date. Expecting format " + DATE_FORMAT;
+        for (Map.Entry<Long, String> entry : metricValues.entrySet()){
+            ModelNode metricNode = new ModelNode();
+            Date date = new Date(entry.getKey().longValue()*1000);
+            metricNode.get("time").set(dateFormat.format(date));
+            metricNode.get("value").set(entry.getValue());
+            result.add(metricNode);
         }
-        if(output.length() == 0) {
-            String metricValue = getMetricValue(dateFrom, dateTo, functionType, 
-                    metricId, context);
-            output += metricValue;
-        }
-        ModelNode result = new ModelNode().set(output);
-        if (result != null) {
-            context.getResult().set(result);
-        }
+        context.getResult().set(result);
         context.stepCompleted();
     }
     
-    private String getMetricValue(Date dateFrom, Date dateTo, FunctionType functionType,
-            String metricId, OperationContext context){
-        if(functionType == null){
-            String returnMessage = "function-type must be one of the following: ";
-            for(FunctionType ft : FunctionType.getAllValues()){
-                returnMessage += ft.getKey() + "|";
-            }
-            returnMessage = returnMessage.substring(0, returnMessage.length()-1);
-            return returnMessage;
-        }
+    private Map<Long, String> getMetricValues(String metricId, OperationContext context){
         IMetricsStorage storage = getStorage(context);
-        Map<Long, String> metricValues = storage.getMetricRecords(metricId);
-        if(metricValues.isEmpty()){
-            return "There are currently no stored values of metric " + metricId;
-        }
-        switch(FunctionType.find(functionType.getId())){
-            case AVG:
-                return getMetricAverageValue(metricValues, dateFrom, dateTo);
-            case MEDIAN:
-                return getMetricValue(metricValues, dateFrom, dateTo, FunctionType.forKey("median"));
-            case MIN:
-                return getMetricValue(metricValues, dateFrom, dateTo, FunctionType.forKey("min"));
-            case MAX:
-                return getMetricValue(metricValues, dateFrom, dateTo, FunctionType.forKey("max"));
-            default:
-                return "No results";
-        }
-    }
-    
-    private String getMetricAverageValue(Map<Long, String> metricValues, 
-            Date dateFrom, Date dateTo){
-        long accumulator = 0;
-        int counter = 0;
-        for (Map.Entry<Long, String> entry : metricValues.entrySet()){
-            if(entry.getKey().longValue() >= dateFrom.getTime()/1000 &&
-               entry.getKey().longValue() <= dateTo.getTime()/1000){
-                String value = entry.getValue();
-                if(value.length() > 0 && value.charAt(value.length()-1)=='L') {
-                    value = value.substring(0, value.length()-1);
-                }
-                long addedValue = 0;
-                try{
-                    addedValue = Long.parseLong(value, 10); 
-                }catch(NumberFormatException e){
-                    return "Cannot execute this type of operation upon non-numeric attributes";
-                }
-                accumulator += addedValue;
-                counter++;
-            }
-        }
-        if(counter == 0){
-            return "No values found between selected dates";
-        }
-        Long averageValue = new Long(accumulator/counter);
-        return averageValue.toString();
-    }
-    
-    private String getMetricValue(Map<Long, String> metricValues, Date dateFrom, 
-            Date dateTo, FunctionType functionType){
-        Map<Long, Long> metricSortedValues = new TreeMap<>();
-        for (Map.Entry<Long, String> entry : metricValues.entrySet()){
-            if(entry.getKey().longValue() >= dateFrom.getTime()/1000 &&
-               entry.getKey().longValue() <= dateTo.getTime()/1000){
-                String value = entry.getValue();
-                if(value.length() > 0 && value.charAt(value.length()-1)=='L') {
-                    value = value.substring(0, value.length()-1);
-                }
-                try{
-                    metricSortedValues.put(entry.getKey(), Long.parseLong(value, 10));
-                } catch(NumberFormatException e){
-                    return "Cannot execute this type of operation upon non-numeric attributes";
-                }
-            }
-        }
-        List<Long> values = new ArrayList<>(metricSortedValues.values());
-        if(values.isEmpty()){
-            return "No values stored in this date range";
-        }
-        Long metricValue = null;
-        switch(FunctionType.find(functionType.getId())){
-            case MEDIAN:
-                metricValue = getMetricMedianValue(metricSortedValues, values);
-                break;
-            case MIN:
-                metricValue = values.get(0);
-                break;
-            case MAX:
-                metricValue = values.get(metricSortedValues.size()-1);
-                break;
-            default:
-                break;
-        }
-        if(metricValue != null){
-            return metricValue.toString();
-        }
-        else{
-            return null;
-        }
-    }
-    
-    private Long getMetricMedianValue(Map<Long, Long> metricSortedValues, 
-            List<Long> values){
-        Long metricValue = null;
-        if(metricSortedValues.size()%2 == 0){
-            int firstPosition = (metricSortedValues.size()+1)/2;
-            int secondPosition = (metricSortedValues.size()-1)/2;
-            Long firstValue = values.get(firstPosition);
-            Long secondValue = values.get(secondPosition);
-            metricValue = new Long((firstValue.longValue()+secondValue.longValue())/2);
-        }
-        else{
-            int medianPosition = (metricSortedValues.size()-1)/2;
-            metricValue = (new ArrayList<>(metricSortedValues.values())).get(medianPosition);
-        }
-        return metricValue;
+        return storage.getMetricRecords(metricId);
     }
     
     private IMetricsStorage getStorage(OperationContext context){
