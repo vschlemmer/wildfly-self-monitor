@@ -74,7 +74,7 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         Assert.assertEquals(SUBSYSTEM, element.getKey());
         Assert.assertEquals(SelfmonitorExtension.SUBSYSTEM_NAME, element.getValue());
         Assert.assertEquals("/subsystem=transactions", addMetrics.get("path").asString());
-        Assert.assertEquals("true", addMetrics.get("enabled").asString());
+        Assert.assertEquals("false", addMetrics.get("enabled").asString());
     }
 
     /**
@@ -96,13 +96,13 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
                 SelfmonitorExtension.SUBSYSTEM_NAME).hasDefined("metric"));
         List<ModelNode> metricList = model.get(SUBSYSTEM, 
                 SelfmonitorExtension.SUBSYSTEM_NAME).get("metric").asList();
-        Assert.assertEquals(9, metricList.size());
+        Assert.assertEquals(2, metricList.size());
         ModelNode metric = model.get(SUBSYSTEM, SelfmonitorExtension.SUBSYSTEM_NAME, 
-                "metric", "number-of-aborted-transactions");
+                "metric", "subsystem_transactions_number-of-aborted-transactions");
         Assert.assertTrue(metric.hasDefined("path"));
         Assert.assertEquals("/subsystem=transactions", metric.get("path").asString());
         Assert.assertTrue(metric.hasDefined("enabled"));
-        Assert.assertTrue(metric.get("enabled").asBoolean());
+        Assert.assertTrue(!metric.get("enabled").asBoolean());
     }
 
     /**
