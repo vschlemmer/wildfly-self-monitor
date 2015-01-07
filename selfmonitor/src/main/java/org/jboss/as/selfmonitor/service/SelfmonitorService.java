@@ -107,18 +107,18 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
 
     public void setStorageType(String storageType) {
         this.storageType = storageType;
-        if(storageType.equals("database")){
-            metricsStorage = new MetricsDbStorage();
-            log.info("Storage type set to database.");
-        }
-        else{
-            metricsStorage = new MetricsMemoryStorage();
-            log.info("Storage type set to memory.");
-        }
-        if(initialized){
-            jobs = MonitorMetricJobHandler.changeStorageType(jobs, this, 
-                    client, metricsStorage);
-        }
+//        if(storageType.equals("database")){
+//            metricsStorage = new MetricsDbStorage();
+//            log.info("Storage type set to database.");
+//        }
+//        else{
+//            metricsStorage = new MetricsMemoryStorage();
+//            log.info("Storage type set to memory.");
+//        }
+//        if(initialized){
+//            jobs = MonitorMetricJobHandler.changeStorageType(jobs, this, 
+//                    client, metricsStorage);
+//        }
     }
     
     private int initMetricsStoreJobs(){

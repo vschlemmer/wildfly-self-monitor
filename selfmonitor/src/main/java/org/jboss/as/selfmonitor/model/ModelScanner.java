@@ -92,11 +92,13 @@ public class ModelScanner {
             for(ModelNode childName : childrenNames.asList()){
                 // add runtime attributes of each child
                 String attrPath = path+"/"+childType+"="+childName.asString();
+                if(childType.equals("applies-to")){
+                    break;
+                }
                 Set<String> localRuntimeAttributes = null;
                 try {
                     localRuntimeAttributes = getRuntimeAttributes(attrPath);
                 } catch (IOException ex) {
-                    // TODO: better handle of the case when childName includes "/" or "="
                     continue;
                 }
                 includeLocalRuntimeAttributes(localRuntimeAttributes, 
