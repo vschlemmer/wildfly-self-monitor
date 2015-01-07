@@ -2,6 +2,7 @@ package org.jboss.as.selfmonitor.service;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -57,7 +58,7 @@ public class MonitorMetricJobHandler {
             trigger = scheduler.getTrigger(TriggerKey.triggerKey(
                     "trigger" + m.getId(), "group" + m.getId()));
         } catch (SchedulerException ex) {
-            java.util.logging.Logger.getLogger(SelfmonitorService.class
+            java.util.logging.Logger.getLogger(MonitorMetricJobHandler.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
         return trigger;
@@ -75,7 +76,7 @@ public class MonitorMetricJobHandler {
                         "group" + m.getId()));
             }
         } catch (SchedulerException ex) {
-            java.util.logging.Logger.getLogger(SelfmonitorService.class
+            java.util.logging.Logger.getLogger(MonitorMetricJobHandler.class
                     .getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -100,7 +101,7 @@ public class MonitorMetricJobHandler {
             scheduler.start();
             scheduler.scheduleJob(job, trigger);
         } catch (SchedulerException ex) {
-            java.util.logging.Logger.getLogger(SelfmonitorService.class.getName())
+            java.util.logging.Logger.getLogger(MonitorMetricJobHandler.class.getName())
                     .log(Level.SEVERE, null, ex);
         }
         return scheduler;
@@ -116,21 +117,40 @@ public class MonitorMetricJobHandler {
             }
         }
         else{
-            if(jobs.containsKey(m.getId())){
-                try {
-                    jobs.get(m.getId()).deleteJob(JobKey.jobKey(
-                            "job" + m.getId(), "group" + m.getId()));
-                } catch (SchedulerException ex) {
-                    java.util.logging.Logger.getLogger(SelfmonitorService.class
-                            .getName()).log(Level.SEVERE, null, ex);
-                }
-                jobs.remove(m.getId());
-            }
+            removeJob(jobs, m);
         }
         return jobs;
     }
     
+    public static Map<String, Scheduler> changeStorageType(
+            Map<String, Scheduler> jobs, SelfmonitorService service,
+            ModelControllerClient client, IMetricsStorage metricsStorage){
+        Map<String, Scheduler> newJobs = new HashMap<>();
+        for(Map.Entry<String, Scheduler> entry : jobs.entrySet()){
+            Scheduler scheduler = entry.getValue();
+            ModelMetric m = service.getMetric(entry.getKey());
+            removeJob(jobs, m);
+            Scheduler newScheduler = initSingleMetricJob(m, client, metricsStorage);
+            newJobs.put(m.getId(), newScheduler);
+        }
+        return newJobs;
+    }
+    
+    public static void removeJob(Map<String, Scheduler> jobs, ModelMetric m){
+        if(jobs.containsKey(m.getId())){
+            try {
+                jobs.get(m.getId()).deleteJob(JobKey.jobKey(
+                        "job" + m.getId(), "group" + m.getId()));
+            } catch (SchedulerException ex) {
+                java.util.logging.Logger.getLogger(MonitorMetricJobHandler.class
+                        .getName()).log(Level.SEVERE, null, ex);
+            }
+            jobs.remove(m.getId());
+        }
+    }
+    
     /**
+     * 
      * Retrieves all records of all metrics from the storage and writes it
      * into log
      * @param log
@@ -145,7 +165,7 @@ public class MonitorMetricJobHandler {
         log.info("Date and time     | value");
         log.info("----------------------------------");
         Map<Long, String> metricData = metricsStorage.getMetricRecords(metric.getId());
-        if(!metricData.isEmpty()){
+        if(metricData != null && !metricData.isEmpty()){
             Map<Long, String> sortedMetricData = new TreeMap<>(metricData);
             for (Map.Entry<Long, String> entry : sortedMetricData.entrySet()){
                 log.info(printFormat.format(new Date(entry.getKey().longValue() * 1000)) + 

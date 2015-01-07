@@ -2,12 +2,8 @@ package org.jboss.as.selfmonitor.model.operations;
 
 import java.util.Date;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.OperationStepHandler;

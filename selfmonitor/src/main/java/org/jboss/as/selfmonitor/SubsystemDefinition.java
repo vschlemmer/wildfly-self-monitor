@@ -7,7 +7,9 @@ import org.jboss.as.controller.SimpleOperationDefinitionBuilder;
 import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
+import org.jboss.as.selfmonitor.model.SelfmonitorStorageTypeHandler;
 import org.jboss.as.selfmonitor.model.operations.ReadMetrics;
+import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
 /**
@@ -27,6 +29,15 @@ public class SubsystemDefinition extends SimpleResourceDefinition {
     }
 
     //attributes
+    public static final SimpleAttributeDefinition STORAGE_TYPE =
+    new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.STORAGE_TYPE, ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName(SelfmonitorExtension.STORAGE_TYPE)
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(false)
+      .setDefaultValue(new ModelNode("database"))
+      .build();
+    
     public static final SimpleAttributeDefinition SHOW_ENABLED =
     new SimpleAttributeDefinitionBuilder("show-enabled", ModelType.BOOLEAN)
       .setAllowExpression(true)
@@ -50,6 +61,6 @@ public class SubsystemDefinition extends SimpleResourceDefinition {
 
     @Override
     public void registerAttributes(ManagementResourceRegistration resourceRegistration) {
-        //you can register attributes here
+        resourceRegistration.registerReadWriteAttribute(STORAGE_TYPE, null, SelfmonitorStorageTypeHandler.INSTANCE);
     }
 }

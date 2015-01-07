@@ -59,6 +59,7 @@ public class SelfmonitorExtension implements Extension {
             .getPackage().getName() + ".LocalDescriptions";
 
     public static final String PATH = "path";
+    public static final String STORAGE_TYPE = "storage-type";
     public static final String ENABLED = "enabled";
     public static final String INTERVAL = "interval";
     public static final String TYPE = "metric-type";
@@ -117,6 +118,13 @@ public class SelfmonitorExtension implements Extension {
                 SubsystemMarshallingContext context) throws XMLStreamException {
             //Write out the main subsystem element
             context.startSubsystemElement(SelfmonitorExtension.NAMESPACE, false);
+            
+            ModelNode subsystemNode = context.getModelNode();
+            ModelNode storageType = subsystemNode.get(STORAGE_TYPE);
+            writer.writeStartElement(STORAGE_TYPE);
+            writer.writeAttribute("name", storageType.asString());
+            writer.writeEndElement();
+            
             writer.writeStartElement(METRICS);
             ModelNode node = context.getModelNode();
             ModelNode metric = node.get(METRIC);
@@ -155,13 +163,24 @@ public class SelfmonitorExtension implements Extension {
  
             //Read the children
             while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-                if (!reader.getLocalName().equals(METRICS)) {
-                    throw ParseUtils.unexpectedElement(reader);
-                }
-                while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
-                    if (reader.isStartElement()) {
-                        readMetric(reader, list);
+                if (reader.getLocalName().equals(STORAGE_TYPE)) {
+                    while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                        if (reader.isStartElement()) {
+                            String attr = reader.getAttributeLocalName(0);
+                            String value = reader.getAttributeValue(0);
+                            SubsystemDefinition.STORAGE_TYPE.parseAndSetParameter(value, null, reader);
+                        }
                     }
+                }
+                else if (reader.getLocalName().equals(METRICS)) {
+                    while (reader.hasNext() && reader.nextTag() != END_ELEMENT) {
+                        if (reader.isStartElement()) {
+                            readMetric(reader, list);
+                        }
+                    }
+                }
+                else {
+                    throw ParseUtils.unexpectedElement(reader);
                 }
             }
         }

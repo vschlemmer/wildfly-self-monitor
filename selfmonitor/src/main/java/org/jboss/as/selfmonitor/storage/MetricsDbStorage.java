@@ -3,6 +3,7 @@ package org.jboss.as.selfmonitor.storage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -46,6 +47,11 @@ public class MetricsDbStorage implements IMetricsStorage {
 
     @Override
     public void addMetric(String metricId, String metricPath, long time, String value) {
+        
+        //debug
+        java.util.logging.Logger.getLogger(MetricsMemoryStorage.class.getName())
+                .log(Level.INFO, "storing value to database");
+        
         Metric metric = new Metric(metricId, metricPath, time, (String) value);
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();

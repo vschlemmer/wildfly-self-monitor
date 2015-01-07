@@ -21,8 +21,8 @@ import org.quartz.UnableToInterruptJobException;
 @DisallowConcurrentExecution
 public class MonitorMetricJob implements Job, InterruptableJob {
     
-    private ModelControllerClient client;
-    private IMetricsStorage metricsStorage;
+    private final ModelControllerClient client;
+    private final IMetricsStorage metricsStorage;
     private boolean interrupted = false;
     private final Logger log = Logger.getLogger(MonitorMetricJob.class);
 

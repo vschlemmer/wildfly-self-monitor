@@ -1,6 +1,5 @@
 package org.jboss.as.selfmonitor.service;
 
-import java.io.File;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -23,7 +22,6 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.quartz.Scheduler;
-import util.XMLMetricParser;
 
 /**
  * Class with selfmonitor service providing the basic functionalities related
@@ -37,9 +35,8 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
 
     public static final String NAME = "SelfmonitorService01";
     public static final String HOST = "localhost";
-    public static final int PORT = 9990;    
-    // TODO: put this to subsystem configuration
-    public static final String STORAGE_TYPE = "database";
+    public static final int PORT = 9990;
+    public String storageType = "database";
     private final Logger log = Logger.getLogger(SelfmonitorService.class);
     private ModelControllerClient client;
     private static final long STARTUP_TIME = 1000;
@@ -64,7 +61,7 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
         return ServiceName.JBOSS.append(NAME);
     }
     
-    private Thread OUTPUT = new Thread() {
+    private final Thread OUTPUT = new Thread() {
         @Override
         public void run() {
             while (true) {
@@ -72,7 +69,7 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
                     if(!initialized){
                         // time needed for client to startup
                         Thread.sleep(STARTUP_TIME);
-                        if(STORAGE_TYPE.equals("database")){
+                        if(storageType.equals("database")){
                             metricsStorage = new MetricsDbStorage();
                         }
                         else{
@@ -85,15 +82,16 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
                         int numberOfJobs = initMetricsStoreJobs();
                         log.info("Number of metrics monitored: " + numberOfJobs);
                         initialized = true;
-                        File jonFile = new File("/data/fi/dp/jon-metrics.xml");
-                        XMLMetricParser.parse(jonFile, metrics);
                     }
                     Thread.sleep(5000);
+                    
+                    //debug
                     for(ModelMetric metric : metrics){
                         if(metric.isEnabled()){
                             MonitorMetricJobHandler.logStoredMetric(log, metric, metricsStorage);
                         }
-                    }                    
+                    }
+                    
                 } catch (InterruptedException e) {
                     interrupted();
                     break;
@@ -102,7 +100,26 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
         }
         
     };
-    
+
+    public String getStorageType() {
+        return storageType;
+    }
+
+    public void setStorageType(String storageType) {
+        this.storageType = storageType;
+        if(storageType.equals("database")){
+            metricsStorage = new MetricsDbStorage();
+            log.info("Storage type set to database.");
+        }
+        else{
+            metricsStorage = new MetricsMemoryStorage();
+            log.info("Storage type set to memory.");
+        }
+        if(initialized){
+            jobs = MonitorMetricJobHandler.changeStorageType(jobs, this, 
+                    client, metricsStorage);
+        }
+    }
     
     private int initMetricsStoreJobs(){
         int numberOfEnabledMetrics = 0;
@@ -136,20 +153,12 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
     private int modelScanAttributes(ModelScanner scanner, ModelWriter writer){
         log.info("Scanning the whole model for metrics, please wait...");
         attributes = scanner.getModelRuntimeAttributes();
-        int counter = 0;
         for(String attribute : attributes){
-//            if(attribute.equals("server-state")){
-                ModelMetric m = getMetricFromAttribute(attribute, scanner);
-//                System.out.println(m);
-                writer.addMetricToModelIfNotPresent(m);
-                if(!metrics.contains(m)){
-                    metrics.add(m);
-                }
-//                if(counter > 3){
-//                    break;
-//                }
-//                counter++;
-//            }
+            ModelMetric m = getMetricFromAttribute(attribute, scanner);
+            writer.addMetricToModelIfNotPresent(m);
+            if(!metrics.contains(m)){
+                metrics.add(m);
+            }
         }
         log.info("Added " + metrics.size() + " metrics");
         return metrics.size();
@@ -244,28 +253,16 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
     public void changeMetricNillable(String metricId, boolean nillable){
         ModelMetric m = getMetric(metricId);
         m.setNillable(nillable);
-//        if(initialized){
-//            jobs = MonitorMetricJobHandler.changeMetricEnabled(m, jobs, 
-//                    client, metricsStorage);
-//        }
     }
     
     public void changeMetricType(String metricId, String type){
         ModelMetric m = getMetric(metricId);
         m.setType(type);
-//        if(initialized){
-//            jobs = MonitorMetricJobHandler.changeMetricType(m, jobs, 
-//                    client, metricsStorage);
-//        }
     }
     
     public void changeMetricDescription(String metricId, String description){
         ModelMetric m = getMetric(metricId);
         m.setDescription(description);
-//        if(initialized){
-//            jobs = MonitorMetricJobHandler.changeMetricDescription(m, jobs, 
-//                    client, metricsStorage);
-//        }
     }
     
     public void changeMetricInterval(String metricId, int interval){

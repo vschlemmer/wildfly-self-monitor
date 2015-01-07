@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 /**
  * Class providing memory storage of metric records
@@ -46,6 +47,11 @@ public class MetricsMemoryStorage implements IMetricsStorage {
      * @param value  value of the metric
      */
     private void addMetricRecord(String metricId, long time, String value){
+        
+        //debug
+        java.util.logging.Logger.getLogger(MetricsMemoryStorage.class.getName())
+                .log(Level.INFO, "storing value to memory");
+        
         if (this.metricRecords.containsKey(metricId)){
             this.metricRecords.get(metricId).put(new Long(time), value);
         }
