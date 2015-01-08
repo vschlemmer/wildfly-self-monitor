@@ -3,13 +3,11 @@ package org.jboss.as.selfmonitor.storage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import org.jboss.as.selfmonitor.entity.Metric;
-import org.jboss.logging.Logger;
 
 /**
  * Class providing database storage of metric records
@@ -18,8 +16,7 @@ import org.jboss.logging.Logger;
  */
 public class MetricsDbStorage implements IMetricsStorage {
 
-    private final Logger log = Logger.getLogger(MetricsDbStorage.class);
-    private EntityManagerFactory emf;
+    private final EntityManagerFactory emf;
     public static final String PERSISTENCE_UNIT_NAME = "SelfmonitorPU";
     
     public MetricsDbStorage(){
@@ -47,11 +44,6 @@ public class MetricsDbStorage implements IMetricsStorage {
 
     @Override
     public void addMetric(String metricId, String metricPath, long time, String value) {
-        
-        //debug
-        java.util.logging.Logger.getLogger(MetricsMemoryStorage.class.getName())
-                .log(Level.INFO, "storing value to database");
-        
         Metric metric = new Metric(metricId, metricPath, time, (String) value);
         EntityManager entityManager = emf.createEntityManager();
         entityManager.getTransaction().begin();

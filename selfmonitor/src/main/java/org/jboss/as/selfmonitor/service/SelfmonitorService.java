@@ -27,8 +27,6 @@ import org.quartz.Scheduler;
  * Class with selfmonitor service providing the basic functionalities related
  * to monitoring of the server runtime attributes (metrics)
  * 
- * TODO: Add to configuration whether to scan whole model for metrics or not
- * 
  * @author Vojtech Schlemmer
  */
 public class SelfmonitorService implements Service<SelfmonitorService>{
@@ -84,13 +82,6 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
                         initialized = true;
                     }
                     Thread.sleep(5000);
-                    
-                    //debug
-                    for(ModelMetric metric : metrics){
-                        if(metric.isEnabled()){
-                            MonitorMetricJobHandler.logStoredMetric(log, metric, metricsStorage);
-                        }
-                    }
                     
                 } catch (InterruptedException e) {
                     interrupted();

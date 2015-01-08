@@ -18,6 +18,10 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
  
+/**
+ *
+ * @author Vojtech Schlemmer
+ */
 @DisallowConcurrentExecution
 public class MonitorMetricJob implements Job, InterruptableJob {
     

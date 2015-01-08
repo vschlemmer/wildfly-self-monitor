@@ -101,12 +101,6 @@ public class ModelScanner {
                         java.util.logging.Logger.getLogger(
                             ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    
-                    //debug
-                    java.util.logging.Logger.getLogger(
-                            ModelScanner.class.getName()).log(Level.INFO, "debug: " + attrPath);
-                    
-                    
                     includeLocalRuntimeAttributes(localRuntimeAttributes, 
                             attrPath + "/");
                     // for each child get his children types and run this method recursively

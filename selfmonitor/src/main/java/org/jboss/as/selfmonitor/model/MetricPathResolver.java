@@ -1,7 +1,6 @@
 package org.jboss.as.selfmonitor.model;
 
 import java.util.Arrays;
-import java.util.logging.Level;
 import org.jboss.dmr.ModelNode;
 
 /**
@@ -51,7 +50,6 @@ public class MetricPathResolver {
         return metricPath;
     }
     
-    // TODO: comment
     public static boolean isPathValid(String path){
         String[] parts = path.split("/");
         boolean valid = true;
@@ -66,8 +64,7 @@ public class MetricPathResolver {
         }
         return valid;
     }
-    
-    // TODO: comment
+
     public static String createValidPath(String path){
         String[] parts = path.split("/");
         StringBuilder pathBuilder = new StringBuilder();

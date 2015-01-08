@@ -97,8 +97,6 @@ public class ModelWriter {
     
     /**
      * Performs the operation of adding a metric to subsystem's configuration
-     * TODO: think about some optimalization, it takes about 25s to
-     * add 291 metrics
      * 
      * @param metric metric to be added
      */

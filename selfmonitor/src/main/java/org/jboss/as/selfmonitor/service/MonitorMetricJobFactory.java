@@ -10,12 +10,12 @@ import org.quartz.spi.TriggerFiredBundle;
 
 /**
  *
- * @author vojtech
+ * @author Vojtech Schlemmer
  */
 public class MonitorMetricJobFactory implements JobFactory {
 
-    private ModelControllerClient client;
-    private IMetricsStorage metricsStorage;
+    private final ModelControllerClient client;
+    private final IMetricsStorage metricsStorage;
     
     public MonitorMetricJobFactory(ModelControllerClient client, IMetricsStorage metricsStorage){
         super();

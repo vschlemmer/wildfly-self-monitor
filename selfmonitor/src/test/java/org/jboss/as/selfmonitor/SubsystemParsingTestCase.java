@@ -75,6 +75,9 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         Assert.assertEquals(SelfmonitorExtension.SUBSYSTEM_NAME, element.getValue());
         Assert.assertEquals("/subsystem=transactions", addMetrics.get("path").asString());
         Assert.assertEquals("false", addMetrics.get("enabled").asString());
+        Assert.assertEquals(5, addMetrics.get("interval").asInt());
+        Assert.assertEquals("LONG", addMetrics.get("metric-type").asString());
+        Assert.assertEquals("true", addMetrics.get("nillable").asString());
     }
 
     /**
@@ -103,6 +106,12 @@ public class SubsystemParsingTestCase extends AbstractSubsystemTest {
         Assert.assertEquals("/subsystem=transactions", metric.get("path").asString());
         Assert.assertTrue(metric.hasDefined("enabled"));
         Assert.assertTrue(!metric.get("enabled").asBoolean());
+        Assert.assertTrue(metric.hasDefined("interval"));
+        Assert.assertEquals(5, metric.get("interval").asInt());
+        Assert.assertTrue(metric.hasDefined("metric-type"));
+        Assert.assertEquals("LONG", metric.get("metric-type").asString());
+        Assert.assertTrue(metric.hasDefined("metric-type"));
+        Assert.assertEquals("true", metric.get("nillable").asString());
     }
 
     /**

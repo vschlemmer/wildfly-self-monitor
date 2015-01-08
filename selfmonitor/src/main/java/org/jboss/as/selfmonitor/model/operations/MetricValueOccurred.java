@@ -15,7 +15,6 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_
 import org.jboss.as.selfmonitor.service.SelfmonitorService;
 import org.jboss.as.selfmonitor.storage.IMetricsStorage;
 import org.jboss.dmr.ModelNode;
-import org.jboss.logging.Logger;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 
@@ -23,12 +22,9 @@ import org.jboss.msc.service.ServiceName;
  *
  * @author Vojtech Schlemmer
  */
-
-
 public class MetricValueOccurred implements OperationStepHandler {
 
     protected final String DATE_FORMAT = "yyyy-MM-dd.HH:mm:ss";
-    private final Logger log = Logger.getLogger(MetricValueOccurred.class);
     
     @Override
     public void execute(OperationContext context, ModelNode operation) throws OperationFailedException {

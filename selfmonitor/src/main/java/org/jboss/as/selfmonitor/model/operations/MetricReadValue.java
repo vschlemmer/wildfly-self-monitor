@@ -20,8 +20,6 @@ import org.jboss.msc.service.ServiceName;
  *
  * @author Vojtech Schlemmer
  */
-
-
 public class MetricReadValue implements OperationStepHandler {
 
     protected final String DATE_FORMAT = "yyyy-MM-dd.HH:mm:ss";

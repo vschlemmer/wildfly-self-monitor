@@ -1,8 +1,0 @@
-Jan 08, 2015 1:28:51 AM org.jboss.msc.service.ServiceContainerImpl <clinit>
-INFO: JBoss MSC version 1.2.2.Final
-Jan 08, 2015 1:28:51 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
-INFO: Populating the model
-Jan 08, 2015 1:28:51 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
-INFO: Populating the model
-Jan 08, 2015 1:28:51 AM org.jboss.as.selfmonitor.SubsystemAdd populateModel
-INFO: Populating the model

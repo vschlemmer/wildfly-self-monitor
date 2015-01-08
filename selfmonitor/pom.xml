@@ -40,6 +40,8 @@
         <version.jboss-msc>1.2.2.Final</version.jboss-msc>
         <version.commons-lang>2.4</version.commons-lang>
         <version.quartz>2.1.7</version.quartz>
+        <version.shrinkwrap>1.2.2</version.shrinkwrap>
+        <version.shrinkwrap.resolver>2.0.0</version.shrinkwrap.resolver>
         
     </properties>
     
@@ -123,6 +125,14 @@
                 </executions>
             </plugin>
         </plugins>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources-jbossas-managed</directory>
+            </testResource>
+        </testResources>
     </build>
     
     <dependencyManagement>
@@ -134,20 +144,64 @@
                 <type>pom</type>
                 <scope>import</scope>
           </dependency>
-<!--          <dependency>
-                <groupId>org.quartz-scheduler</groupId>
-                <artifactId>quartz</artifactId>
-                <version>${version.quartz}</version>
-                <scope>import</scope>
-                <type>pom</type>
+          
+          <!-- Test Dependencies -->
+          <dependency>
+              <groupId>org.jboss.as</groupId>
+              <artifactId>jboss-as-subsystem-test</artifactId>
+              <version>7.2.0.Final</version>
+              <scope>test</scope>
           </dependency>
           <dependency>
-                <groupId>org.quartz-scheduler</groupId>
-                <artifactId>quartz-jboss</artifactId>
-                <version>${version.quartz}</version>
-                <scope>import</scope>
-                <type>pom</type>
-          </dependency>-->
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-arquillian-container-managed</artifactId>
+            <version>${version.wildfly}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-arquillian-container-remote</artifactId>
+            <version>${version.wildfly}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-api</artifactId>
+            <version>${version.shrinkwrap.resolver}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+            <version>${version.shrinkwrap.resolver}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+            <version>${version.shrinkwrap.resolver}</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+              <groupId>org.mockito</groupId>
+              <artifactId>mockito-core</artifactId>
+              <version>1.9.5</version>
+              <scope>test</scope>
+          </dependency>
+          <dependency>
+              <groupId>net.sourceforge.htmlunit</groupId>
+              <artifactId>htmlunit</artifactId>
+              <version>2.7</version>
+              <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>org.jboss.arquillian</groupId>
+            <artifactId>arquillian-bom</artifactId>
+            <version>1.1.5.Final</version>
+            <scope>import</scope>
+            <type>pom</type>
+        </dependency>
+
 	  </dependencies>
     </dependencyManagement>
 
@@ -221,15 +275,48 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
             <version>${version.quartz}</version>
-            <!--<type>jar</type>-->
-<!--            <scope>provided</scope>-->
         </dependency>
-<!--        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz-jboss</artifactId>
-            <version>${version.quartz}</version>
-            <type>jar</type>-->
-<!--            <scope>provided</scope>-->
-        <!--</dependency>-->
+        
+        <dependency>
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jboss-as-subsystem-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.arquillian.junit</groupId>
+          <artifactId>arquillian-junit-container</artifactId>
+          <scope>test</scope>
+          <version>1.1.5.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-arquillian-container-managed</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.shrinkwrap.resolver</groupId>
+          <artifactId>shrinkwrap-resolver-api</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.shrinkwrap.resolver</groupId>
+          <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.shrinkwrap.resolver</groupId>
+          <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.htmlunit</groupId>
+            <artifactId>htmlunit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
