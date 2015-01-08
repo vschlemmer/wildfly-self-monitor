@@ -62,6 +62,7 @@ public class SelfmonitorExtension implements Extension {
     public static final String ENABLED = "enabled";
     public static final String INTERVAL = "interval";
     public static final String TYPE = "metric-type";
+    public static final String DATA_TYPE = "data-type";
     public static final String DESCRIPTION = "metric-description";
     public static final String NILLABLE = "nillable";
     protected static final String METRIC = "metric";
@@ -132,6 +133,7 @@ public class SelfmonitorExtension implements Extension {
                 MetricDefinition.TYPE.marshallAsAttribute(entry, true, writer);
                 MetricDefinition.DESCRIPTION.marshallAsAttribute(entry, true, writer);
                 MetricDefinition.NILLABLE.marshallAsAttribute(entry, true, writer);
+                MetricDefinition.DATA_TYPE.marshallAsAttribute(entry, true, writer);
                 writer.writeEndElement();
             }
             //End metrics
@@ -197,6 +199,8 @@ public class SelfmonitorExtension implements Extension {
                     MetricDefinition.DESCRIPTION.parseAndSetParameter(value, addMetricOperation, reader);
                 } else if (attr.equals(NILLABLE)) {
                     MetricDefinition.NILLABLE.parseAndSetParameter(value, addMetricOperation, reader);
+                } else if (attr.equals(DATA_TYPE)) {
+                    MetricDefinition.DATA_TYPE.parseAndSetParameter(value, addMetricOperation, reader);
                 } else {
                     throw ParseUtils.unexpectedAttribute(reader, i);
                 }

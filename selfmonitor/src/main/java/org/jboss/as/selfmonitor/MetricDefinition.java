@@ -89,6 +89,14 @@ public class MetricDefinition extends SimpleResourceDefinition {
       .setAllowNull(true)
       .build();
     
+    public static final SimpleAttributeDefinition DATA_TYPE =
+    new SimpleAttributeDefinitionBuilder(SelfmonitorExtension.DATA_TYPE, ModelType.STRING)
+      .setAllowExpression(true)
+      .setXmlName(SelfmonitorExtension.DATA_TYPE)
+      .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+      .setAllowNull(true)
+      .build();
+    
     //operations' parameters
     public static final SimpleAttributeDefinition DATE_FROM =
     new SimpleAttributeDefinitionBuilder("date-from", ModelType.STRING)

@@ -120,6 +120,8 @@ public class ModelWriter {
                 metric.getDescription()));
         op.get(SelfmonitorExtension.NILLABLE).set(String.valueOf(
                 metric.isNillable()));
+        op.get(SelfmonitorExtension.DATA_TYPE).set(String.valueOf(
+                metric.getDataType()));
         ModelNode returnVal = null;
         try {
             returnVal = client.execute(op);

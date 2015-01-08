@@ -14,6 +14,7 @@ import static org.jboss.as.selfmonitor.MetricDefinition.INTERVAL;
 import static org.jboss.as.selfmonitor.MetricDefinition.TYPE;
 import static org.jboss.as.selfmonitor.MetricDefinition.DESCRIPTION;
 import static org.jboss.as.selfmonitor.MetricDefinition.NILLABLE;
+import static org.jboss.as.selfmonitor.MetricDefinition.DATA_TYPE;
 import org.jboss.as.selfmonitor.model.ModelMetric;
 import org.jboss.dmr.ModelNode;
 import org.jboss.msc.service.ServiceController;
@@ -36,6 +37,7 @@ public class MetricAdd extends AbstractAddStepHandler {
         TYPE.validateAndSet(operation, model);
         DESCRIPTION.validateAndSet(operation, model);
         NILLABLE.validateAndSet(operation, model);
+        DATA_TYPE.validateAndSet(operation, model);
     }
     
     @Override
@@ -45,18 +47,21 @@ public class MetricAdd extends AbstractAddStepHandler {
         SelfmonitorService service = getSelfmonitorService(
                 context.getServiceRegistry(true), 
                 SelfmonitorService.NAME);
-        String metricId = PathAddress.pathAddress(operation.get(ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
+        String metricId = PathAddress.pathAddress(operation.get(
+                ModelDescriptionConstants.ADDRESS)).getLastElement().getValue();
         String metricPath = PATH.resolveModelAttribute(context,model).asString();
         boolean enabled = ENABLED.resolveModelAttribute(context,model).asBoolean();
         int interval = INTERVAL.resolveModelAttribute(context,model).asInt();
         String type = TYPE.resolveModelAttribute(context,model).asString();
         String description = DESCRIPTION.resolveModelAttribute(context,model).asString();
         boolean nillable = NILLABLE.resolveModelAttribute(context,model).asBoolean();
+        String dataType = DATA_TYPE.resolveModelAttribute(context,model).asString();
         ModelMetric metricInService = service.getMetric(metricId);
         if(metricInService != null){
             service.removeMetric(metricInService);
         }
-        ModelMetric metric = new ModelMetric(metricId, metricPath, enabled, interval, type, description, nillable);
+        ModelMetric metric = new ModelMetric(metricId, metricPath, enabled, 
+                interval, type, description, nillable, dataType);
         service.addMetric(metric);
     }
     

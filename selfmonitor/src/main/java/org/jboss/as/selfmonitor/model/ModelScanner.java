@@ -78,6 +78,7 @@ public class ModelScanner {
     private void getChildrenAttributes(String childType, String path){
         // get the children of a given childType
         ModelNode op = new ModelNode();
+        path = MetricPathResolver.createValidPath(path);
         MetricPathResolver.resolvePath(path, op);
         op.get(ClientConstants.OP).set(READ_CHILDREN_NAMES);
         op.get(ClientConstants.CHILD_TYPE).set(childType);
@@ -92,35 +93,45 @@ public class ModelScanner {
             for(ModelNode childName : childrenNames.asList()){
                 // add runtime attributes of each child
                 String attrPath = path+"/"+childType+"="+childName.asString();
-                if(childType.equals("applies-to")){
-                    break;
-                }
-                Set<String> localRuntimeAttributes = null;
-                try {
-                    localRuntimeAttributes = getRuntimeAttributes(attrPath);
-                } catch (IOException ex) {
-                    continue;
-                }
-                includeLocalRuntimeAttributes(localRuntimeAttributes, 
-                        attrPath + "/");
-                // for each child get his children types and run this method recursively
-                ModelNode opChildrenTypes = new ModelNode();
-                MetricPathResolver.resolvePath(attrPath, opChildrenTypes);
-                opChildrenTypes.get(ClientConstants.OP).set(READ_CHILDREN_TYPES);
-                ModelNode childrenTypes = null;
-                try {
-                    childrenTypes = client.execute(opChildrenTypes).get(
-                            ClientConstants.RESULT);
-                } catch (IOException ex) {
-                    Logger.getLogger(ModelScanner.class.getName()).log(
-                            Level.SEVERE, null, ex);
-                }
-                if(validateNode(childrenTypes)){
-                    for(ModelNode recursiveChildType : childrenTypes.asList()){
-                        getChildrenAttributes(recursiveChildType.asString(), 
-                                path+"/"+childType+"="+childName.asString());   
+//                if(MetricPathResolver.isPathValid(attrPath)){
+                    Set<String> localRuntimeAttributes = null;
+                    try {
+                        localRuntimeAttributes = getRuntimeAttributes(attrPath);
+                    } catch (IOException ex) {
+                        java.util.logging.Logger.getLogger(
+                            ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                }
+                    
+                    //debug
+                    java.util.logging.Logger.getLogger(
+                            ModelScanner.class.getName()).log(Level.INFO, "debug: " + attrPath);
+                    
+                    
+                    includeLocalRuntimeAttributes(localRuntimeAttributes, 
+                            attrPath + "/");
+                    // for each child get his children types and run this method recursively
+                    ModelNode opChildrenTypes = new ModelNode();
+                    attrPath = MetricPathResolver.createValidPath(attrPath);
+                    MetricPathResolver.resolvePath(attrPath, opChildrenTypes);
+                    opChildrenTypes.get(ClientConstants.OP).set(READ_CHILDREN_TYPES);
+                    ModelNode childrenTypes = null;
+                    try {
+                        childrenTypes = client.execute(opChildrenTypes).get(
+                                ClientConstants.RESULT);
+                    } catch (IOException ex) {
+                        Logger.getLogger(ModelScanner.class.getName()).log(
+                                Level.SEVERE, null, ex);
+                    }
+                    if(validateNode(childrenTypes)){
+                        for(ModelNode recursiveChildType : childrenTypes.asList()){
+                            String tmpChildPath = path+"/"+childType+"="+childName.asString();
+                            if(MetricPathResolver.isPathValid(tmpChildPath)){
+                                getChildrenAttributes(recursiveChildType.asString(), 
+                                    tmpChildPath);   
+                            }
+                        }
+                    }
+//                }
             }
         }
     }
@@ -150,6 +161,7 @@ public class ModelScanner {
      */
     private Set<String> getAttributes(String path, boolean runtime) throws IOException{
         ModelNode op = new ModelNode();
+        path = MetricPathResolver.createValidPath(path);
         MetricPathResolver.resolvePath(path, op);
         ModelNode attributes = null;
         op.get(ClientConstants.OP).set(ClientConstants.READ_RESOURCE_OPERATION);
@@ -215,6 +227,7 @@ public class ModelScanner {
         String metricType = "";
         String metricDescription = "";
         boolean metricNillable = true;
+        String metricDataType = "";
         if(metricDetails != null){
             if(metricDetails.get("type") != null){
                 metricType = metricDetails.get("type").asString();
@@ -234,8 +247,17 @@ public class ModelScanner {
                             " doesn't have defined 'nillable' nor 'required' attribute");
                 }
             }
+            if(metricType.toUpperCase().equals("INT") ||
+               metricType.toUpperCase().equals("INTEGER") ||
+               metricType.toUpperCase().equals("LONG") ||
+               metricType.toUpperCase().equals("DECIMAL")){
+                metricDataType = "aggr";
+            }
+            else{
+                metricDataType = "trait";
+            }
         }
         return new ModelMetric(metricId, metricPath, enabled, interval, 
-                metricType, metricDescription, metricNillable);
+                metricType, metricDescription, metricNillable, metricDataType);
     }
 }

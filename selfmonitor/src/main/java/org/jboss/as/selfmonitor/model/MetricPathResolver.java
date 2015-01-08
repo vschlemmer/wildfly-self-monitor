@@ -1,6 +1,7 @@
 package org.jboss.as.selfmonitor.model;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 import org.jboss.dmr.ModelNode;
 
 /**
@@ -48,6 +49,45 @@ public class MetricPathResolver {
             }
         }
         return metricPath;
+    }
+    
+    // TODO: comment
+    public static boolean isPathValid(String path){
+        String[] parts = path.split("/");
+        boolean valid = true;
+        for (int i = 0; i < parts.length; i++){
+            if(parts[i].length() > 10){
+                String invalidPart = parts[i].substring(0, 10);
+                if(invalidPart.equals("applies-to")){
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        return valid;
+    }
+    
+    // TODO: comment
+    public static String createValidPath(String path){
+        String[] parts = path.split("/");
+        StringBuilder pathBuilder = new StringBuilder();
+        boolean valid = true;
+        for (int i = 0; i < parts.length; i++){
+            if(parts[i].length() > 10){
+                String invalidPart = parts[i].substring(0, 10);
+                if(invalidPart.equals("applies-to")){
+                    valid = false;
+                }
+            }
+            if(!valid){ 
+                break;
+            }
+            pathBuilder.append(parts[i]);
+            pathBuilder.append("/");
+        }
+        String metricPath = pathBuilder.toString();
+        String resultPath = metricPath.substring(0, metricPath.length()-1);
+        return resultPath;
     }
     
 }

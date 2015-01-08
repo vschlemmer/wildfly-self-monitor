@@ -17,9 +17,10 @@ public class ModelMetric {
     private String type;
     private String description;
     private boolean nillable;
+    private String dataType;
 
     public ModelMetric(String id, String path, boolean enabled, int interval, 
-            String type, String description, boolean nillable) {
+            String type, String description, boolean nillable, String dataType) {
         this.id = id;
         this.path = path;
         this.enabled = enabled;
@@ -27,6 +28,15 @@ public class ModelMetric {
         this.type = type;
         this.description = description;
         this.nillable = nillable;
+        this.dataType = dataType;
+    }
+
+    public String getDataType() {
+        return dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = dataType;
     }
 
     public String getType() {
