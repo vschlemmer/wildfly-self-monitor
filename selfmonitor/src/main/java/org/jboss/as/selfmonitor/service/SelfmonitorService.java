@@ -37,7 +37,7 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
     public String storageType = "database";
     private final Logger log = Logger.getLogger(SelfmonitorService.class);
     private ModelControllerClient client;
-    private static final long STARTUP_TIME = 1000;
+    private static final long STARTUP_TIME = 10000;
     private IMetricsStorage metricsStorage;
     private Set<ModelMetric> metrics = Collections.synchronizedSet(new HashSet<ModelMetric>());
     private Set<String> attributes;
@@ -98,18 +98,6 @@ public class SelfmonitorService implements Service<SelfmonitorService>{
 
     public void setStorageType(String storageType) {
         this.storageType = storageType;
-//        if(storageType.equals("database")){
-//            metricsStorage = new MetricsDbStorage();
-//            log.info("Storage type set to database.");
-//        }
-//        else{
-//            metricsStorage = new MetricsMemoryStorage();
-//            log.info("Storage type set to memory.");
-//        }
-//        if(initialized){
-//            jobs = MonitorMetricJobHandler.changeStorageType(jobs, this, 
-//                    client, metricsStorage);
-//        }
     }
     
     private int initMetricsStoreJobs(){

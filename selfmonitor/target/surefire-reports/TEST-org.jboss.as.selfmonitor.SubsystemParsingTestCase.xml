@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuite failures="0" time="0.279" errors="0" skipped="0" tests="5" name="org.jboss.as.selfmonitor.SubsystemParsingTestCase">
+<testsuite failures="0" time="0.415" errors="0" skipped="0" tests="5" name="org.jboss.as.selfmonitor.SubsystemParsingTestCase">
   <properties>
     <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
     <property name="javax.xml.datatype.DatatypeFactory" value="__redirected.__DatatypeFactory"/>
@@ -22,7 +22,7 @@
     <property name="basedir" value="/data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor"/>
     <property name="java.endorsed.dirs" value="/usr/lib/jvm/java-7-openjdk-amd64/jre/lib/endorsed"/>
     <property name="os.arch" value="amd64"/>
-    <property name="surefire.real.class.path" value="/data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefirebooter6539752766050752772.jar"/>
+    <property name="surefire.real.class.path" value="/data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefirebooter5996927332657075703.jar"/>
     <property name="java.io.tmpdir" value="/tmp"/>
     <property name="line.separator" value="
 "/>
@@ -52,7 +52,7 @@
     <property name="java.vm.specification.version" value="1.7"/>
     <property name="sun.arch.data.model" value="64"/>
     <property name="java.home" value="/usr/lib/jvm/java-7-openjdk-amd64/jre"/>
-    <property name="sun.java.command" value="/data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefirebooter6539752766050752772.jar /data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefire809025422576842538tmp /data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefire6782868147724254924tmp"/>
+    <property name="sun.java.command" value="/data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefirebooter5996927332657075703.jar /data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefire4152266356259948706tmp /data/fi/dp/self-monitor/code/wildfly-self-monitor2/wildfly-self-monitor/selfmonitor/target/surefire/surefire7932891833010363517tmp"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
     <property name="user.language" value="en"/>
     <property name="awt.toolkit" value="sun.awt.X11.XToolkit"/>
@@ -70,9 +70,9 @@
     <property name="sun.desktop" value="gnome"/>
     <property name="sun.cpu.isalist" value=""/>
   </properties>
-  <testcase time="0.139" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testParseAndMarshalModel"/>
-  <testcase time="0.07" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testDescribeHandler"/>
-  <testcase time="0.003" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testParseSubsystem"/>
-  <testcase time="0.034" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testSubsystemRemoval"/>
-  <testcase time="0.031" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testInstallIntoController"/>
+  <testcase time="0.212" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testParseAndMarshalModel"/>
+  <testcase time="0.097" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testDescribeHandler"/>
+  <testcase time="0.004" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testParseSubsystem"/>
+  <testcase time="0.043" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testSubsystemRemoval"/>
+  <testcase time="0.052" classname="org.jboss.as.selfmonitor.SubsystemParsingTestCase" name="testInstallIntoController"/>
 </testsuite>

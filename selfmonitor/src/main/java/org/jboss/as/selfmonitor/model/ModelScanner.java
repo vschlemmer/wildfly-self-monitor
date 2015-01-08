@@ -90,42 +90,40 @@ public class ModelScanner {
                 ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
         }
         if(validateNode(childrenNames)){
-            for(ModelNode childName : childrenNames.asList()){
+            for(ModelNode childName : childrenNames.asList()){        
                 // add runtime attributes of each child
                 String attrPath = path+"/"+childType+"="+childName.asString();
-//                if(MetricPathResolver.isPathValid(attrPath)){
-                    Set<String> localRuntimeAttributes = null;
-                    try {
-                        localRuntimeAttributes = getRuntimeAttributes(attrPath);
-                    } catch (IOException ex) {
-                        java.util.logging.Logger.getLogger(
-                            ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    includeLocalRuntimeAttributes(localRuntimeAttributes, 
-                            attrPath + "/");
-                    // for each child get his children types and run this method recursively
-                    ModelNode opChildrenTypes = new ModelNode();
-                    attrPath = MetricPathResolver.createValidPath(attrPath);
-                    MetricPathResolver.resolvePath(attrPath, opChildrenTypes);
-                    opChildrenTypes.get(ClientConstants.OP).set(READ_CHILDREN_TYPES);
-                    ModelNode childrenTypes = null;
-                    try {
-                        childrenTypes = client.execute(opChildrenTypes).get(
-                                ClientConstants.RESULT);
-                    } catch (IOException ex) {
-                        Logger.getLogger(ModelScanner.class.getName()).log(
-                                Level.SEVERE, null, ex);
-                    }
-                    if(validateNode(childrenTypes)){
-                        for(ModelNode recursiveChildType : childrenTypes.asList()){
-                            String tmpChildPath = path+"/"+childType+"="+childName.asString();
-                            if(MetricPathResolver.isPathValid(tmpChildPath)){
-                                getChildrenAttributes(recursiveChildType.asString(), 
-                                    tmpChildPath);   
-                            }
+                Set<String> localRuntimeAttributes = null;
+                try {
+                    localRuntimeAttributes = getRuntimeAttributes(attrPath);
+                } catch (IOException ex) {
+                    java.util.logging.Logger.getLogger(
+                        ModelScanner.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                includeLocalRuntimeAttributes(localRuntimeAttributes, 
+                        attrPath + "/");
+                // for each child get his children types and run this method recursively
+                ModelNode opChildrenTypes = new ModelNode();
+                attrPath = MetricPathResolver.createValidPath(attrPath);
+                MetricPathResolver.resolvePath(attrPath, opChildrenTypes);
+                opChildrenTypes.get(ClientConstants.OP).set(READ_CHILDREN_TYPES);
+                ModelNode childrenTypes = null;
+                try {
+                    childrenTypes = client.execute(opChildrenTypes).get(
+                            ClientConstants.RESULT);
+                } catch (IOException ex) {
+                    Logger.getLogger(ModelScanner.class.getName()).log(
+                            Level.SEVERE, null, ex);
+                }
+                if(validateNode(childrenTypes)){
+                    for(ModelNode recursiveChildType : childrenTypes.asList()){
+                        String tmpChildPath = path+"/"+childType+"="+childName.asString();
+                        if(MetricPathResolver.isPathValid(tmpChildPath)){
+                            getChildrenAttributes(recursiveChildType.asString(), 
+                                tmpChildPath);   
                         }
                     }
-//                }
+                }
             }
         }
     }

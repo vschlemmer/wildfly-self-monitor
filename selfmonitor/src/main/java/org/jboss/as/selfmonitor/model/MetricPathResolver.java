@@ -22,6 +22,7 @@ public class MetricPathResolver {
     public static ModelNode resolvePath(String path, ModelNode op){
         ModelNode metricPath = op.get("address");
         if(path.length() <= 1){
+            metricPath.add("");
             return metricPath;
         }
         String delim = "/";
@@ -66,6 +67,9 @@ public class MetricPathResolver {
     }
 
     public static String createValidPath(String path){
+        if(path.length() <= 1){
+            return path;
+        }
         String[] parts = path.split("/");
         StringBuilder pathBuilder = new StringBuilder();
         boolean valid = true;
